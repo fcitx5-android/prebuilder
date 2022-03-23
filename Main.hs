@@ -51,7 +51,7 @@ libime = do
     copyFile' "sc.dict" $ "libime" </> "data" </> "sc.dict"
     copyFile' "zh_CN.lm.predict" $ "libime" </> "data" </> "zh_CN.lm.predict"
     copyFile' "zh_CN.lm" $ "libime" </> "data" </> "zh_CN.lm"
-    forM_ [] $ \table ->
+    forM_ ["db", "erbi", "qxm", "wanfeng", "wbpy", "wbx", "zrm", "cj"] $ \table ->
       let name = table <.> "main.dict"
        in copyFile' name ("libime" </> "table" </> name)
 
