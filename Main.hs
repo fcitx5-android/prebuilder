@@ -1,14 +1,21 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module Main where
 
 import Development.Shake
+import Development.Shake.Classes
+import Development.Shake.FilePath
+import GHC.Generics (Generic)
 
 --------------------------------------------------------------------------------
 main :: IO ()
 main = shakeArgs shakeOptions $ do
   spellDict
   libime
+  chineseAddons
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
@@ -97,6 +104,76 @@ tableDict = do
     let src = takeWhile (/= '.') out
     need ["table_txt"]
     cmd_ "libime_tabledict" src out
+
+--------------------------------------------------------------------------------
+chineseAddonsRepoDataUrl :: String
+chineseAddonsRepoDataUrl = "https://raw.githubusercontent.com/fcitx/fcitx5-chinese-addons/5.0.9/im/pinyin/"
+
+chineseAddons :: Rules ()
+chineseAddons = do
+  pinyinDict
+  pinyinStroke
+  pinyinTable
+
+pinyinDict :: Rules ()
+pinyinDict = do
+  let txt name sha256 =
+        name <.> "txt" %> \out ->
+          download chineseAddonsRepoDataUrl out sha256
+      dict name =
+        name <.> "dict" %> \out -> do
+          let src = name <.> "txt"
+          need [src]
+          cmd_ "libime_pinyindict" src out
+
+  txt "chaizi" "cd659605360120f7390fda1a278eea12c4df6d763a95c8099068ab09cfafd058"
+  dict "chaizi"
+
+  txt "emoji" "1e34d7ac78d1e1879829d1a8533242047ec8b5c2a2d64f26ef6a6bf2dc551994"
+  dict "emoji"
+
+pinyinStroke :: Rules ()
+pinyinStroke = do
+  "py_stroke-20121124.tar.gz" %> \out ->
+    download fcitxDataUrl out "8eb128a9bfa43952e67cf2fcee1fd134c6f4cfd317bc2f6c38a615f5eb64e248"
+  "py_stroke.mb" ~> do
+    let src = "py_stroke-20121124.tar.gz"
+    need [src]
+    cmd_ "tar" "xf" src
+
+pinyinTable :: Rules ()
+pinyinTable = do
+  "py_table-20121124.tar.gz" %> \out ->
+    download fcitxDataUrl out "42146ac97de6c13d55f9e99ed873915f4c66739e9c11532a34556badf9792c04"
+  "py_table.mb" ~> do
+    let src = "py_table-20121124.tar.gz"
+    need [src]
+    cmd_ "tar" "xf" src
+
+--------------------------------------------------------------------------------
+
+data Boost = Boost
+  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+
+type instance RuleResult Boost = ()
+
+--------------------------------------------------------------------------------
+
+data AndroidEnv = AndroidEnv
+  { ndkRoot :: FilePath,
+    sdkCmakeVersion :: String,
+    platform :: Int,
+    abi :: String
+  }
+  deriving (Eq, Show, Typeable, Generic, Hashable, Binary, NFData)
+
+newtype WithAndroidEnv k = WithAndroidEnv (k, AndroidEnv)
+  deriving (Eq, Generic, Hashable, Binary, NFData)
+
+instance Show k => Show (WithAndroidEnv k) where
+  show (WithAndroidEnv (k, n)) = show k <> " (" <> show n <> ")"
+
+type instance RuleResult (WithAndroidEnv k) = RuleResult k
 
 --------------------------------------------------------------------------------
 
