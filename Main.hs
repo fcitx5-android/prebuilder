@@ -5,6 +5,7 @@
 
 module Main where
 
+import Control.Monad (forM_)
 import Development.Shake
 import Development.Shake.Classes
 import Development.Shake.FilePath
@@ -34,6 +35,8 @@ spellDict = do
     let src = "en_dict.txt"
     need [src]
     cmd_ "comp-spell-dict" "--comp-dict" [src, out]
+  "spell-dict" ~> do
+    copyFile' "en_dict.fscd" $ "spell-dict" </> "en_dict.fscd"
 
 --------------------------------------------------------------------------------
 libimeRepoDataUrl :: String
@@ -44,6 +47,13 @@ libime = do
   openGramApra
   openGramDict
   tableDict
+  "libime" ~> do
+    copyFile' "sc.dict" $ "libime" </> "data" </> "sc.dict"
+    copyFile' "zh_CN.lm.predict" $ "libime" </> "data" </> "zh_CN.lm.predict"
+    copyFile' "zh_CN.lm" $ "libime" </> "data" </> "zh_CN.lm"
+    forM_ [] $ \table ->
+      let name = table <.> "main.dict"
+       in copyFile' name ("libime" </> "table" </> name)
 
 openGramApra :: Rules ()
 openGramApra = do
@@ -87,7 +97,7 @@ openGramDict = do
     need [script, src]
     (Stdout txt) <- cmd "python" script src
     writeFile' out txt
-  "sc.dic" %> \out -> do
+  "sc.dict" %> \out -> do
     let src = "dict.converted"
     cmd_ "libime_pinyindict" src out
 
@@ -114,6 +124,11 @@ chineseAddons = do
   pinyinDict
   pinyinStroke
   pinyinTable
+  "chinese-addons-data" ~> do
+    copyFile' "emoji.dict" $ "chinese-addons-data" </> "pinyin" </> "emoji.dict"
+    copyFile' "chaizi.dict" $ "chinese-addons-data" </> "pinyin" </> "chaizi.dict"
+    copyFile' "py_table.mb" $ "chinese-addons-data" </> "pinyinhelper" </> "py_table.mb"
+    copyFile' "py_stroke.mb" $ "chinese-addons-data" </> "pinyinhelper" </> "py_stroke.mb"
 
 pinyinDict :: Rules ()
 pinyinDict = do
