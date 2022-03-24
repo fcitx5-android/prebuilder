@@ -28,6 +28,7 @@ main = shakeArgs shakeOptions $ do
   fmt
   libevent
   libintlLite
+  lua
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
@@ -300,6 +301,41 @@ libintlLite = do
   "libintl-lite" ~> do
     env <- getAndroidEnv
     buildLibintlLite $ WithAndroidEnv LibintlLite env
+
+--------------------------------------------------------------------------------
+
+data Lua = Lua
+  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+
+type instance RuleResult Lua = ()
+
+lua :: Rules ()
+lua = do
+  buildLua <- addOracle $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
+    luaSrc <- getCanonicalizedRootSrc "Lua"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    let toolchain = getCmakeToolchain env
+    withAndroidEnv env $ \cmake abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "lua" </> a
+        cmd_
+          (Cwd luaSrc)
+          cmake
+          "-B"
+          "build"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DLUA_BUILD_BINARY=OFF",
+            "-DLUA_BUILD_COMPILER=OFF"
+          ]
+        cmd_ (Cwd luaSrc) cmake "--build" "build"
+        cmd_ (Cwd luaSrc) cmake "--build" "build" "--target" "install"
+  "lua" ~> do
+    env <- getAndroidEnv
+    buildLua $ WithAndroidEnv Lua env
 
 --------------------------------------------------------------------------------
 
