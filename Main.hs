@@ -258,9 +258,9 @@ libevent = do
       -- post patch
       cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
       cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
-      cmd_ (Cwd outPrefix) "sed" "-i" "45{/^set(_IMPORT_PREFIX/d}" "lib/cmake/libevent/LibeventTargets-static.cmake"
-      cmd_ (Cwd outPrefix) "sed" "-i" "45iget_filename_component(LIBEVENT_CMAKE_DIR \"${CMAKE_CURRENT_LIST_FILE}\" PATH)" "lib/cmake/libevent/LibeventTargets-static.cmake"
-      cmd_ (Cwd outPrefix) "sed" "-i" "46iget_filename_component(_IMPORT_PREFIX \"${LIBEVENT_CMAKE_DIR}/../../..\" ABSOLUTE)" "lib/cmake/libevent/LibeventTargets-static.cmake"
+      cmd_ (Cwd outPrefix) "sed" "-i" ["45{/^set(_IMPORT_PREFIX/d}", "lib/cmake/libevent/LibeventTargets-static.cmake"]
+      cmd_ (Cwd outPrefix) "sed" "-i" ["45iget_filename_component(LIBEVENT_CMAKE_DIR \"${CMAKE_CURRENT_LIST_FILE}\" PATH)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
+      cmd_ (Cwd outPrefix) "sed" "-i" ["46iget_filename_component(_IMPORT_PREFIX \"${LIBEVENT_CMAKE_DIR}/../../..\" ABSOLUTE)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
   "libevent" ~> do
     env <- getAndroidEnv
     buildLibevent $ WithAndroidEnv Libevent env
