@@ -26,6 +26,7 @@ main = shakeArgs shakeOptions $ do
   libime
   chineseAddons
   fmt
+  libevent
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
@@ -215,6 +216,54 @@ fmt = do
   "fmt" ~> do
     env <- getAndroidEnv
     buildFmt $ WithAndroidEnv Fmt env
+
+--------------------------------------------------------------------------------
+
+data Libevent = Libevent
+  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+
+type instance RuleResult Libevent = ()
+
+libevent :: Rules ()
+libevent = do
+  buildLibevent <- addOracle $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
+    libeventSrc <- getCanonicalizedRootSrc "libevent"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    let abiList = getABIList env
+        cmake = getSdkCmake env
+    forM_ abiList $ \a -> do
+      let outPrefix = out </> "libevent" </> a
+      cmd_
+        (Cwd libeventSrc)
+        cmake
+        "-B"
+        "build"
+        [ "-DCMAKE_TOOLCHAIN_FILE=" <> ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake",
+          "-DANDROID_ABI=" <> a,
+          "-DANDROID_PLATFORM=" <> show platform,
+          "-DANDROID_STL=c++_shared",
+          "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+          "-DCMAKE_BUILD_TYPE=Release",
+          "-DEVENT__LIBRARY_TYPE=STATIC",
+          "-DEVENT__DISABLE_DEBUG_MODE=ON",
+          "-DEVENT__DISABLE_THREAD_SUPPORT=ON",
+          "-DEVENT__DISABLE_OPENSSL=ON",
+          "-DEVENT__DISABLE_BENCHMARK=ON",
+          "-DEVENT__DISABLE_TESTS=ON",
+          "-DEVENT__DISABLE_REGRESS=ON",
+          "-DEVENT__DISABLE_SAMPLES=ON"
+        ]
+      cmd_ (Cwd libeventSrc) cmake "--build" "build"
+      cmd_ (Cwd libeventSrc) cmake "--build" "build" "--target" "install"
+      -- post patch
+      cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
+      cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
+      cmd_ (Cwd outPrefix) "sed" "-i" "45{/^set(_IMPORT_PREFIX/d}" "lib/cmake/libevent/LibeventTargets-static.cmake"
+      cmd_ (Cwd outPrefix) "sed" "-i" "45iget_filename_component(LIBEVENT_CMAKE_DIR \"${CMAKE_CURRENT_LIST_FILE}\" PATH)" "lib/cmake/libevent/LibeventTargets-static.cmake"
+      cmd_ (Cwd outPrefix) "sed" "-i" "46iget_filename_component(_IMPORT_PREFIX \"${LIBEVENT_CMAKE_DIR}/../../..\" ABSOLUTE)" "lib/cmake/libevent/LibeventTargets-static.cmake"
+  "libevent" ~> do
+    env <- getAndroidEnv
+    buildLibevent $ WithAndroidEnv Libevent env
 
 --------------------------------------------------------------------------------
 
