@@ -1,0 +1,4 @@
+internal/*
+libintl.h
+LibIntlConfig.cmake.in
+CMakeLists.txt

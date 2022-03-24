@@ -196,17 +196,13 @@ fmt = do
   buildFmt <- addOracleCache $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- getCanonicalizedRootSrc "fmt"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    needSrc
-      fmtSrc
-      [ "src//*",
-        "include//*",
-        "support//*",
-        "CMakeLists.txt"
-      ]
+    (src, production) <- getSrcAndProduction "fmt"
+    needSrc fmtSrc src
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "fmt" </> a
+        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd fmtSrc)
           cmake
@@ -239,21 +235,13 @@ libevent = do
   buildLibevent <- addOracleCache $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
     libeventSrc <- getCanonicalizedRootSrc "libevent"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    needSrc
-      libeventSrc
-      [ "cmake/*",
-        "compat//*",
-        "include//*",
-        "*.c",
-        "*.h",
-        "*.cmake",
-        "*.in",
-        "CMakeLists.txt"
-      ]
+    (src, production) <- getSrcAndProduction "libevent"
+    needSrc libeventSrc src
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libevent" </> a
+        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd libeventSrc)
           cmake
@@ -298,17 +286,13 @@ libintlLite = do
   buildLibintlLite <- addOracleCache $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
     libintlSrc <- getCanonicalizedRootSrc "libintl-lite"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    needSrc
-      libintlSrc
-      [ "internal/*",
-        "libintl.h",
-        "LibIntlConfig.cmake.in",
-        "CMakeLists.txt"
-      ]
+    (src, production) <- getSrcAndProduction "libintl-lite"
+    needSrc libintlSrc src
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libintl-lite" </> a
+        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd libintlSrc)
           cmake
@@ -338,19 +322,14 @@ lua :: Rules ()
 lua = do
   buildLua <- addOracleCache $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
     luaSrc <- getCanonicalizedRootSrc "Lua"
-    needSrc
-      luaSrc
-      [ "lua-5.4.4/src//*",
-        "lua-5.4.4/lua-5.4.4/include//*",
-        "lua-5.4.4/CMakeLists.txt",
-        "lua-5.4.4/LuaConfig.cmake.in",
-        "CMakeLists.txt"
-      ]
+    (src, production) <- getSrcAndProduction "lua"
+    needSrc luaSrc src
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "lua" </> a
+        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd luaSrc)
           cmake
@@ -439,6 +418,13 @@ getMainPath =
       . find ((== "getMainPath") . fst)
       . getCallStack
       $ callStack
+
+--------------------------------------------------------------------------------
+
+getSrcAndProduction :: String -> Action ([String], [String])
+getSrcAndProduction name = do
+  list <- getCanonicalizedRootSrc "list"
+  (,) <$> readFileLines (list </> name <> "-i") <*> readFileLines (list </> name <> "-o")
 
 --------------------------------------------------------------------------------
 

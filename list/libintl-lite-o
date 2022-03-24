@@ -1,0 +1,6 @@
+include/libintl.h
+lib/cmake/LibIntlConfig.cmake
+lib/cmake/LibIntlConfigVersion.cmake
+lib/cmake/LibIntlTargets-release.cmake
+lib/cmake/LibIntlTargets.cmake
+lib/libintl.a

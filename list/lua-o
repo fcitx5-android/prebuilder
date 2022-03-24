@@ -1,0 +1,10 @@
+include/lauxlib.h
+include/lua.h
+include/lua.hpp
+include/luaconf.h
+include/lualib.h
+lib/cmake/LuaConfig.cmake
+lib/cmake/LuaConfigVersion.cmake
+lib/cmake/LuaTargets-noconfig.cmake
+lib/cmake/LuaTargets.cmake
+lib/liblua.a
