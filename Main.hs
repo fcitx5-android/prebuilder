@@ -187,13 +187,14 @@ type instance RuleResult Fmt = ()
 
 fmt :: Rules ()
 fmt = do
-  buildFmt <- addOracle $ \(WithAndroidEnv Fmt AndroidEnv {..}) -> do
+  buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- (</> "fmt") <$> liftIO getCurrentDirectory
     let abis = split (== ',') abi
+        cmake = sdkCmake env
     forM_ abis $ \a -> do
       cmd_
         (Cwd fmtSrc)
-        "cmake"
+        cmake
         "-B"
         "build"
         [ "-DCMAKE_TOOLCHAIN_FILE=" <> ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake",
@@ -212,18 +213,23 @@ fmt = do
 --------------------------------------------------------------------------------
 
 data AndroidEnv = AndroidEnv
-  { ndkRoot :: FilePath,
+  { sdkRoot :: FilePath,
+    ndkRoot :: FilePath,
     sdkCmakeVersion :: String,
     platform :: Int,
     abi :: String
   }
   deriving (Eq, Show, Typeable, Generic, Hashable, Binary, NFData)
 
+sdkCmake :: AndroidEnv -> FilePath
+sdkCmake AndroidEnv {..} = "sdkRoot" </> "cmake" </> ndkRoot </> "bin" </> "cmake"
+
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = fromMaybeM
-  ( fail "Can not construct AndroidEnv. Please make sure that thethe following environment variables are set: ANDROID_NDK_ROOT, ANDROID_SDK_CMAKE_VERSION, ANDROID_PLATFORM, and ANDROID_ABI."
+  ( fail "Can not construct AndroidEnv. Please make sure that the following environment variables are set: ANDROID_SDK_ROOT, ANDROID_NDK_ROOT, ANDROID_SDK_CMAKE_VERSION, ANDROID_PLATFORM, and ANDROID_ABI."
   )
   $ runMaybeT $ do
+    sdkRoot <- MaybeT $ getEnv "ANDROID_SDK_ROOT"
     ndkRoot <- MaybeT $ getEnv "ANDROID_NDK_ROOT"
     sdkCmakeVersion <- MaybeT $ getEnv "ANDROID_SDK_CMAKE_VERSION"
     platform <- fmap read $ MaybeT $ getEnv "ANDROID_PLATFORM"
