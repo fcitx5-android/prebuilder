@@ -1,15 +1,20 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module Main where
 
 import Control.Monad (forM_)
+import Control.Monad.Extra (fromMaybeM)
+import Control.Monad.Trans.Maybe
+import Data.List.Extra (split)
 import Development.Shake
 import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
+import System.Directory.Extra
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -17,6 +22,7 @@ main = shakeArgs shakeOptions $ do
   spellDict
   libime
   chineseAddons
+  fmt
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
@@ -174,6 +180,37 @@ type instance RuleResult Boost = ()
 
 --------------------------------------------------------------------------------
 
+data Fmt = Fmt
+  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+
+type instance RuleResult Fmt = ()
+
+fmt :: Rules ()
+fmt = do
+  buildFmt <- addOracle $ \(WithAndroidEnv Fmt AndroidEnv {..}) -> do
+    fmtSrc <- (</> "fmt") <$> liftIO getCurrentDirectory
+    let abis = split (== ',') abi
+    forM_ abis $ \a -> do
+      cmd_
+        (Cwd fmtSrc)
+        "cmake"
+        "-B"
+        "build"
+        [ "-DCMAKE_TOOLCHAIN_FILE=" <> ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake",
+          "-DANDROID_ABI=" <> a,
+          "-DANDROID_PLATFORM=" <> show platform,
+          "-DANDROID_STL=c++_shared",
+          "-DCMAKE_INSTALL_PREFIX=" <> a,
+          "-DCMAKE_CXX_FLAGS=-std=c++17",
+          "-DFMT_TEST=OFF",
+          "-DFMT_DOC=OFF"
+        ]
+  "fmt" ~> do
+    env <- getAndroidEnv
+    buildFmt $ WithAndroidEnv Fmt env
+
+--------------------------------------------------------------------------------
+
 data AndroidEnv = AndroidEnv
   { ndkRoot :: FilePath,
     sdkCmakeVersion :: String,
@@ -182,11 +219,22 @@ data AndroidEnv = AndroidEnv
   }
   deriving (Eq, Show, Typeable, Generic, Hashable, Binary, NFData)
 
-newtype WithAndroidEnv k = WithAndroidEnv (k, AndroidEnv)
+getAndroidEnv :: Action AndroidEnv
+getAndroidEnv = fromMaybeM
+  ( fail "Can not construct AndroidEnv. Please make sure that thethe following environment variables are set: ANDROID_NDK_ROOT, ANDROID_SDK_CMAKE_VERSION, ANDROID_PLATFORM, and ANDROID_ABI."
+  )
+  $ runMaybeT $ do
+    ndkRoot <- MaybeT $ getEnv "ANDROID_NDK_ROOT"
+    sdkCmakeVersion <- MaybeT $ getEnv "ANDROID_SDK_CMAKE_VERSION"
+    platform <- fmap read $ MaybeT $ getEnv "ANDROID_PLATFORM"
+    abi <- MaybeT $ getEnv "ANDROID_ABI"
+    pure AndroidEnv {..}
+
+data WithAndroidEnv k = WithAndroidEnv k AndroidEnv
   deriving (Eq, Generic, Hashable, Binary, NFData)
 
 instance Show k => Show (WithAndroidEnv k) where
-  show (WithAndroidEnv (k, n)) = show k <> " (" <> show n <> ")"
+  show (WithAndroidEnv k n) = show k <> " (" <> show n <> ")"
 
 type instance RuleResult (WithAndroidEnv k) = RuleResult k
 
