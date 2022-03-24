@@ -6,19 +6,22 @@
 
 module Main where
 
-import Control.Monad (forM_)
+import Control.Monad (forM_, void)
 import Control.Monad.Extra (fromMaybeM)
 import Control.Monad.Trans.Maybe
-import Data.List.Extra (split)
+import Data.List.Extra (find, split)
+import Data.Maybe (fromJust)
 import Development.Shake
 import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
+import GHC.Stack
 import System.Directory.Extra
 
 --------------------------------------------------------------------------------
 main :: IO ()
 main = shakeArgs shakeOptions $ do
+  mainPathRule
   spellDict
   libime
   chineseAddons
@@ -188,10 +191,11 @@ type instance RuleResult Fmt = ()
 fmt :: Rules ()
 fmt = do
   buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
-    fmtSrc <- (</> "fmt") <$> liftIO getCurrentDirectory
-    let abis = split (== ',') abi
-        cmake = sdkCmake env
-    forM_ abis $ \a -> do
+    fmtSrc <- getCanonicalizedRootSrc "fmt"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    let abiList = getABIList env
+        cmake = getSdkCmake env
+    forM_ abiList $ \a -> do
       cmd_
         (Cwd fmtSrc)
         cmake
@@ -201,11 +205,13 @@ fmt = do
           "-DANDROID_ABI=" <> a,
           "-DANDROID_PLATFORM=" <> show platform,
           "-DANDROID_STL=c++_shared",
-          "-DCMAKE_INSTALL_PREFIX=" <> a,
+          "-DCMAKE_INSTALL_PREFIX=" <> out </> "fmt" </> a,
           "-DCMAKE_CXX_FLAGS=-std=c++17",
           "-DFMT_TEST=OFF",
           "-DFMT_DOC=OFF"
         ]
+      cmd_ (Cwd fmtSrc) cmake "--build" "build"
+      cmd_ (Cwd fmtSrc) cmake "--build" "build" "--target" "install"
   "fmt" ~> do
     env <- getAndroidEnv
     buildFmt $ WithAndroidEnv Fmt env
@@ -221,8 +227,11 @@ data AndroidEnv = AndroidEnv
   }
   deriving (Eq, Show, Typeable, Generic, Hashable, Binary, NFData)
 
-sdkCmake :: AndroidEnv -> FilePath
-sdkCmake AndroidEnv {..} = "sdkRoot" </> "cmake" </> ndkRoot </> "bin" </> "cmake"
+getSdkCmake :: AndroidEnv -> FilePath
+getSdkCmake AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCmakeVersion </> "bin" </> "cmake"
+
+getABIList :: AndroidEnv -> [String]
+getABIList AndroidEnv {..} = split (== ',') abi
 
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = fromMaybeM
@@ -243,6 +252,33 @@ instance Show k => Show (WithAndroidEnv k) where
   show (WithAndroidEnv k n) = show k <> " (" <> show n <> ")"
 
 type instance RuleResult (WithAndroidEnv k) = RuleResult k
+
+--------------------------------------------------------------------------------
+
+data MainPath = MainPath
+  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+
+type instance RuleResult MainPath = FilePath
+
+getCanonicalizedRootSrc :: FilePath -> Action FilePath
+getCanonicalizedRootSrc fp = do
+  root <- askOracle MainPath
+  liftIO . canonicalizePath $ root </> fp
+
+mainPathRule :: Rules ()
+mainPathRule = void $
+  addOracle $ \MainPath -> takeDirectory <$> liftIO getMainPath
+
+getMainPath :: HasCallStack => IO FilePath
+getMainPath =
+  withFrozenCallStack $
+    canonicalizePath
+      . srcLocFile
+      . snd
+      . fromJust
+      . find ((== "getMainPath") . fst)
+      . getCallStack
+      $ callStack
 
 --------------------------------------------------------------------------------
 
