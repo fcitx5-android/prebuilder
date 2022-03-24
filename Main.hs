@@ -27,6 +27,7 @@ main = shakeArgs shakeOptions $ do
   chineseAddons
   fmt
   libevent
+  libintlLite
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
@@ -194,25 +195,26 @@ fmt = do
   buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- getCanonicalizedRootSrc "fmt"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    let abiList = getABIList env
-        cmake = getSdkCmake env
-    forM_ abiList $ \a -> do
-      cmd_
-        (Cwd fmtSrc)
-        cmake
-        "-B"
-        "build"
-        [ "-DCMAKE_TOOLCHAIN_FILE=" <> ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake",
-          "-DANDROID_ABI=" <> a,
-          "-DANDROID_PLATFORM=" <> show platform,
-          "-DANDROID_STL=c++_shared",
-          "-DCMAKE_INSTALL_PREFIX=" <> out </> "fmt" </> a,
-          "-DCMAKE_CXX_FLAGS=-std=c++17",
-          "-DFMT_TEST=OFF",
-          "-DFMT_DOC=OFF"
-        ]
-      cmd_ (Cwd fmtSrc) cmake "--build" "build"
-      cmd_ (Cwd fmtSrc) cmake "--build" "build" "--target" "install"
+    let toolchain = getCmakeToolchain env
+    withAndroidEnv env $ \cmake abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "fmt" </> a
+        cmd_
+          (Cwd fmtSrc)
+          cmake
+          "-B"
+          "build"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_CXX_FLAGS=-std=c++17",
+            "-DFMT_TEST=OFF",
+            "-DFMT_DOC=OFF"
+          ]
+        cmd_ (Cwd fmtSrc) cmake "--build" "build"
+        cmd_ (Cwd fmtSrc) cmake "--build" "build" "--target" "install"
   "fmt" ~> do
     env <- getAndroidEnv
     buildFmt $ WithAndroidEnv Fmt env
@@ -229,41 +231,75 @@ libevent = do
   buildLibevent <- addOracle $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
     libeventSrc <- getCanonicalizedRootSrc "libevent"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    let abiList = getABIList env
-        cmake = getSdkCmake env
-    forM_ abiList $ \a -> do
-      let outPrefix = out </> "libevent" </> a
-      cmd_
-        (Cwd libeventSrc)
-        cmake
-        "-B"
-        "build"
-        [ "-DCMAKE_TOOLCHAIN_FILE=" <> ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake",
-          "-DANDROID_ABI=" <> a,
-          "-DANDROID_PLATFORM=" <> show platform,
-          "-DANDROID_STL=c++_shared",
-          "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
-          "-DCMAKE_BUILD_TYPE=Release",
-          "-DEVENT__LIBRARY_TYPE=STATIC",
-          "-DEVENT__DISABLE_DEBUG_MODE=ON",
-          "-DEVENT__DISABLE_THREAD_SUPPORT=ON",
-          "-DEVENT__DISABLE_OPENSSL=ON",
-          "-DEVENT__DISABLE_BENCHMARK=ON",
-          "-DEVENT__DISABLE_TESTS=ON",
-          "-DEVENT__DISABLE_REGRESS=ON",
-          "-DEVENT__DISABLE_SAMPLES=ON"
-        ]
-      cmd_ (Cwd libeventSrc) cmake "--build" "build"
-      cmd_ (Cwd libeventSrc) cmake "--build" "build" "--target" "install"
-      -- post patch
-      cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
-      cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
-      cmd_ (Cwd outPrefix) "sed" "-i" ["45{/^set(_IMPORT_PREFIX/d}", "lib/cmake/libevent/LibeventTargets-static.cmake"]
-      cmd_ (Cwd outPrefix) "sed" "-i" ["45iget_filename_component(LIBEVENT_CMAKE_DIR \"${CMAKE_CURRENT_LIST_FILE}\" PATH)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
-      cmd_ (Cwd outPrefix) "sed" "-i" ["46iget_filename_component(_IMPORT_PREFIX \"${LIBEVENT_CMAKE_DIR}/../../..\" ABSOLUTE)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
+    let toolchain = getCmakeToolchain env
+    withAndroidEnv env $ \cmake abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "libevent" </> a
+        cmd_
+          (Cwd libeventSrc)
+          cmake
+          "-B"
+          "build"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DEVENT__LIBRARY_TYPE=STATIC",
+            "-DEVENT__DISABLE_DEBUG_MODE=ON",
+            "-DEVENT__DISABLE_THREAD_SUPPORT=ON",
+            "-DEVENT__DISABLE_OPENSSL=ON",
+            "-DEVENT__DISABLE_BENCHMARK=ON",
+            "-DEVENT__DISABLE_TESTS=ON",
+            "-DEVENT__DISABLE_REGRESS=ON",
+            "-DEVENT__DISABLE_SAMPLES=ON"
+          ]
+        cmd_ (Cwd libeventSrc) cmake "--build" "build"
+        cmd_ (Cwd libeventSrc) cmake "--build" "build" "--target" "install"
+        -- post patch
+        cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
+        cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
+        cmd_ (Cwd outPrefix) "sed" "-i" ["45{/^set(_IMPORT_PREFIX/d}", "lib/cmake/libevent/LibeventTargets-static.cmake"]
+        cmd_ (Cwd outPrefix) "sed" "-i" ["45iget_filename_component(LIBEVENT_CMAKE_DIR \"${CMAKE_CURRENT_LIST_FILE}\" PATH)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
+        cmd_ (Cwd outPrefix) "sed" "-i" ["46iget_filename_component(_IMPORT_PREFIX \"${LIBEVENT_CMAKE_DIR}/../../..\" ABSOLUTE)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
   "libevent" ~> do
     env <- getAndroidEnv
     buildLibevent $ WithAndroidEnv Libevent env
+
+--------------------------------------------------------------------------------
+
+data LibintlLite = LibintlLite
+  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+
+type instance RuleResult LibintlLite = ()
+
+libintlLite :: Rules ()
+libintlLite = do
+  buildLibintlLite <- addOracle $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
+    libintlSrc <- getCanonicalizedRootSrc "libintl-lite"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    let toolchain = getCmakeToolchain env
+    withAndroidEnv env $ \cmake abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "libintl-lite" </> a
+        cmd_
+          (Cwd libintlSrc)
+          cmake
+          "-B"
+          "build"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release"
+          ]
+        cmd_ (Cwd libintlSrc) cmake "--build" "build"
+        cmd_ (Cwd libintlSrc) cmake "--build" "build" "--target" "install"
+  "libintl-lite" ~> do
+    env <- getAndroidEnv
+    buildLibintlLite $ WithAndroidEnv LibintlLite env
 
 --------------------------------------------------------------------------------
 
@@ -281,6 +317,12 @@ getSdkCmake AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCmakeVersion </> "bin" 
 
 getABIList :: AndroidEnv -> [String]
 getABIList AndroidEnv {..} = split (== ',') abi
+
+getCmakeToolchain :: AndroidEnv -> FilePath
+getCmakeToolchain AndroidEnv {..} = ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake"
+
+withAndroidEnv :: AndroidEnv -> (FilePath -> [String] -> Action a) -> Action a
+withAndroidEnv env f = f (getSdkCmake env) (getABIList env)
 
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = fromMaybeM
