@@ -1,15 +1,20 @@
 [submodule "Boost-for-Android"]
 	path = Boost-for-Android
 	url = https://github.com/moritz-wundke/Boost-for-Android
+	ignore = untracked
 [submodule "fmt"]
 	path = fmt
 	url = https://github.com/fmtlib/fmt
+	ignore = untracked
 [submodule "libevent"]
 	path = libevent
 	url = https://github.com/libevent/libevent
+	ignore = untracked
 [submodule "libintl-lite"]
 	path = libintl-lite
 	url = https://github.com/j-jorge/libintl-lite
+	ignore = untracked
 [submodule "Lua"]
 	path = Lua
 	url = https://github.com/walterschell/Lua
+	ignore = untracked
