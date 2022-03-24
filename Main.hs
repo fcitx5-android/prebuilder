@@ -193,9 +193,16 @@ type instance RuleResult Fmt = ()
 
 fmt :: Rules ()
 fmt = do
-  buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
+  buildFmt <- addOracleCache $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- getCanonicalizedRootSrc "fmt"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    needSrc
+      fmtSrc
+      [ "src//*",
+        "include//*",
+        "support//*",
+        "CMakeLists.txt"
+      ]
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
@@ -229,9 +236,20 @@ type instance RuleResult Libevent = ()
 
 libevent :: Rules ()
 libevent = do
-  buildLibevent <- addOracle $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
+  buildLibevent <- addOracleCache $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
     libeventSrc <- getCanonicalizedRootSrc "libevent"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    needSrc
+      libeventSrc
+      [ "cmake/*",
+        "compat//*",
+        "include//*",
+        "*.c",
+        "*.h",
+        "*.cmake",
+        "*.in",
+        "CMakeLists.txt"
+      ]
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
@@ -277,9 +295,16 @@ type instance RuleResult LibintlLite = ()
 
 libintlLite :: Rules ()
 libintlLite = do
-  buildLibintlLite <- addOracle $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
+  buildLibintlLite <- addOracleCache $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
     libintlSrc <- getCanonicalizedRootSrc "libintl-lite"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    needSrc
+      libintlSrc
+      [ "internal/*",
+        "libintl.h",
+        "LibIntlConfig.cmake.in",
+        "CMakeLists.txt"
+      ]
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
@@ -311,8 +336,16 @@ type instance RuleResult Lua = ()
 
 lua :: Rules ()
 lua = do
-  buildLua <- addOracle $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
+  buildLua <- addOracleCache $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
     luaSrc <- getCanonicalizedRootSrc "Lua"
+    needSrc
+      luaSrc
+      [ "lua-5.4.4/src//*",
+        "lua-5.4.4/lua-5.4.4/include//*",
+        "lua-5.4.4/CMakeLists.txt",
+        "lua-5.4.4/LuaConfig.cmake.in",
+        "CMakeLists.txt"
+      ]
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
@@ -408,6 +441,13 @@ getMainPath =
       $ callStack
 
 --------------------------------------------------------------------------------
+
+needSrc :: FilePath -> [FilePattern] -> Action ()
+needSrc srcRoot src =
+  getDirectoryFiles
+    srcRoot
+    src
+    >>= need . fmap (srcRoot </>)
 
 download :: String -> FilePath -> String -> Action ()
 download baseUrl fileName sha256 = do
