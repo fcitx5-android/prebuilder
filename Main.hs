@@ -132,7 +132,6 @@ tableDictRule = do
   (<.> "txt") <$> tableDictNames |%> \out -> do
     let src = "table.tar.gz"
     download fcitxDataUrl src "6196053c724125e3ae3d8bd6b2f9172d0c83b65b0d410d3cde63b7a8d6ab87b7"
-    need [src]
     (Stdout txt) <- cmd "tar" "xf" src out
     produces $ lines txt
   "*.main.dict" %> \out -> do
