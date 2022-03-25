@@ -11,7 +11,7 @@ import Control.Monad (forM_, void)
 import Control.Monad.Extra (fromMaybeM)
 import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as BS
-import Data.List.Extra (find, split)
+import Data.List.Extra (find, replace, split)
 import Data.Maybe (fromJust)
 import Development.Shake
 import Development.Shake.Classes
@@ -34,6 +34,7 @@ main = shakeArgs shakeOptions $ do
   libeventRule
   libintlLiteRule
   luaRule
+  boostRule
   "everything"
     ~> need
       [ "spell-dict",
@@ -42,7 +43,8 @@ main = shakeArgs shakeOptions $ do
         "chinese-addons-data",
         "libevent",
         "libintl-lite",
-        "lua"
+        "lua",
+        "boost"
       ]
 
 fcitxDataUrl :: String
@@ -180,10 +182,31 @@ pinyinTableRule = do
 
 --------------------------------------------------------------------------------
 
-data Boost = Boost
+newtype Boost = Boost {boostLib :: String}
   deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
 
 type instance RuleResult Boost = ()
+
+boostRule :: Rules ()
+boostRule = do
+  buildBoost <- addOracle $ \(WithAndroidEnv Boost {..} AndroidEnv {..}) -> do
+    boostAndroidSrc <- getCanonicalizedRootSrc "Boost-for-Android"
+    let boostVersion = "1.78.0"
+        boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
+        boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/" <> boostVersion <> "/source/"
+    download boostUrl boostTar "8681f175d4bdb26c52222665793eef08490d7758529330f98d3b29dd0735bccc"
+    cmd_
+      (boostAndroidSrc </> "build-android.sh")
+      [ "boost=" <> boostVersion,
+        "--with-libraries=" <> boostLib,
+        "--arch=" <> abi,
+        "--target-version" <> show platform,
+        "--layout=\"\""
+      ]
+      ndkRoot
+  "boost" ~> do
+    env <- getAndroidEnv
+    buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex") env
 
 --------------------------------------------------------------------------------
 
@@ -461,7 +484,7 @@ downloadFileRule = addBuiltinRule noLint noIdentity $ \DownloadFile {..} mOld mo
       cmd_ "curl" "-LO" url
       sha256 <- sha256sum downloadFileName
       if sha256 /= downloadSha256
-        then fail $ "SHA256 mismatched: expected " <> downloadSha256 <> ", but got " <> sha256
+        then fail $ "SHA256 mismatched: expected " <> (if not $ null downloadSha256 then downloadSha256 else "[empty]") <> ", but got " <> sha256
         else pure $ RunResult ChangedRecomputeDiff (BS.pack sha256) ()
 
 sha256sum :: FilePath -> Action String
