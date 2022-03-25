@@ -1,0 +1,77 @@
+name: CI
+
+# Trigger the workflow on push or pull request, but only for the master branch
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: archlinux
+    env:
+      abi: armeabi-v7a,arm64-v8a,x86,x86_64
+      ndk_version: 23.1.7779620
+      cmake_version: 3.18.1
+      platform: 23
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm base-devel ghc git unzip haskell-shake libime jdk11-openjdk python openssh
+
+      - name: Fetch source code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Install NDK
+        run: sdkmanager --install "ndk;${{ env.ndk_version }}"
+
+      - name: Install cmake
+        run: sdkmanager --install "cmake;${{ env.cmake_version }}"
+
+      - name: Build
+        run: |
+          export ANDROID_NDK_ROOT=${ANDROID_SDK_ROOT}/ndk/${{ env.ndk_version }}
+          export ANDROID_SDK_CMAKE_VERSION=${{ env.cmake_version }}
+          export ANDROID_PLATFORM=${{ env.platform }}
+          export ANDROID_ABI=${{ env.abi }}
+          mkdir build
+          cd build
+          runghc ../Main.hs -j -V everything
+      - name: Push to built branch
+        run: |
+          mkdir ../built
+          cd ../built
+          git init
+          git remote add origin git@github.com:${{ github.repository }}.git
+          git fetch origin
+          git checkout -b built
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          cp -a ../prebuilder/build/{spell-dict,chinese-addons-data,libime,fmt,libevent,libintl-lite,lua,boost} ./
+          git add .
+          git commit -m "Auto update"
+          git push --set-upstream origin "HEAD:built" --follow-tags --atomic
+      - name: Notify Telegram group
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master'}}
+        run: |
+          curl -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+            -H "content-type: application/json" \
+            -d @- << EOF
+          {
+          "chat_id": ${{ secrets.TELEGRAM_TO }},
+          "text": "${{ github.repository }}: Job [${{ github.workflow }} / ${{ github.job }} \\\(${{ github.event_name }}\\\) \\\#${{ github.run_number }}]\
+          (https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) \
+          by [${{ github.actor }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) \
+          ${{ job.status == 'success' && 'succeed ✔' || 'failed ✘' }}",
+          "parse_mode": "MarkdownV2",
+          "disable_web_page_preview": true
+          }
+          EOF
