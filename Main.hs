@@ -196,11 +196,11 @@ boostRule = do
     download boostUrl boostTar "8681f175d4bdb26c52222665793eef08490d7758529330f98d3b29dd0735bccc"
     cmd_
       (boostAndroidSrc </> "build-android.sh")
-      [ "boost=" <> boostVersion,
+      [ "--boost=" <> boostVersion,
         "--with-libraries=" <> boostLib,
         "--arch=" <> abi,
         "--target-version=" <> show platform,
-        "--layout=\"\""
+        "--layout="
       ]
       ndkRoot
   "boost" ~> do
