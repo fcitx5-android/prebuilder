@@ -8,7 +8,7 @@
 module Main where
 
 import Control.Monad (forM_, void)
-import Control.Monad.Extra (fromMaybeM)
+import Control.Monad.Extra (fromMaybeM, whenM)
 import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as BS
 import Data.List.Extra (find, replace, split)
@@ -188,16 +188,11 @@ type instance RuleResult Boost = ()
 
 boostRule :: Rules ()
 boostRule = do
-  buildBoost <- addOracleCache $ \(WithAndroidEnv Boost {..} env@AndroidEnv {..}) -> do
+  buildBoost <- addOracle $ \(WithAndroidEnv Boost {..} AndroidEnv {..}) -> do
     boostAndroidSrc <- getCanonicalizedRootSrc "Boost-for-Android"
-    (src, production) <- getSrcAndProduction "boost"
-    needSrc boostAndroidSrc src
     let boostVersion = "1.78.0"
         boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
         boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/" <> boostVersion <> "/source/"
-        abiList = getABIList env
-        buildDir a = "build" </> "out" </> a
-    forM_ abiList $ \a -> produces $ fmap (buildDir a </>) production
     download boostUrl boostTar "8681f175d4bdb26c52222665793eef08490d7758529330f98d3b29dd0735bccc"
     cmd_
       (boostAndroidSrc </> "build-android.sh")
@@ -214,18 +209,21 @@ boostRule = do
     -- we take a random one
     let abiList = getABIList env
         firstAbi = head abiList
-    buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex") env
+    -- magic dependency
+    _ <- buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex") env
     getDirectoryFiles
       ("build" </> "out" </> firstAbi </> "include" </> "boost")
       ["//*.hpp"]
-      >>= mapM_ (\x -> liftIO $ copyFile x $ "boost" </> "include" </> "boost" </> x)
+      >>= mapM_ (\x -> copyFile' ("build" </> "out" </> firstAbi </> "include" </> "boost" </> x) $ "boost" </> "include" </> "boost" </> x)
     forM_ abiList $ \a -> do
       getDirectoryFiles
         ("build" </> "out" </> a </> "lib")
         ["*.a", "//*.cmake"]
-        >>= mapM_ (\x -> liftIO $ copyFile x $ "boost" </> a </> "lib" </> x)
+        >>= mapM_ (\x -> copyFile' ("build" </> "out" </> a </> "lib" </> x) $ "boost" </> a </> "lib" </> x)
       -- symlink headers for each abi to reduce size
-      liftIO $ createDirectoryLink ("boost" </> "include") ("boost" </> a </> "include")
+      let path = "boost" </> a </> "include"
+      liftIO $ whenM (doesPathExist path) $ removePathForcibly path
+      liftIO $ createDirectoryLink (".." </> "include") path
 
 --------------------------------------------------------------------------------
 
@@ -449,7 +447,7 @@ getCanonicalizedRootSrc fp = do
 
 mainPathRule :: Rules ()
 mainPathRule = void $
-  addOracle $ \MainPath -> takeDirectory <$> liftIO getMainPath
+  addOracleCache $ \MainPath -> takeDirectory <$> liftIO getMainPath
 
 getMainPath :: HasCallStack => IO FilePath
 getMainPath =
