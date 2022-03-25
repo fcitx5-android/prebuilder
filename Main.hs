@@ -199,7 +199,7 @@ boostRule = do
       [ "boost=" <> boostVersion,
         "--with-libraries=" <> boostLib,
         "--arch=" <> abi,
-        "--target-version" <> show platform,
+        "--target-version=" <> show platform,
         "--layout=\"\""
       ]
       ndkRoot
