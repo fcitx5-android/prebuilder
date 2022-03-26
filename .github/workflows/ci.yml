@@ -20,7 +20,7 @@ jobs:
       - name: Install build dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm base-devel ghc git unzip haskell-shake libime jdk11-openjdk python openssh
+          pacman -S --needed --noconfirm base-devel ghc git unzip haskell-shake libime jdk11-openjdk python
 
       - name: Fetch source code
         uses: actions/checkout@v2
@@ -50,7 +50,7 @@ jobs:
           mkdir ../built
           cd ../built
           git init
-          git remote add origin git@github.com:${{ github.repository }}.git
+          git remote add origin https://$GITHUB_TOKEN@github.com/${{ github.repository }}.git
           git fetch origin
           git checkout -b built
           git config user.name github-actions
@@ -60,7 +60,7 @@ jobs:
           git commit -m "Auto update"
           git push --set-upstream origin "HEAD:built" --follow-tags --atomic
       - name: Notify Telegram group
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master'}}
+        if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/master'}}
         run: |
           curl -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
             -H "content-type: application/json" \
