@@ -90,14 +90,31 @@ node("android") {
                     sh "git rev-parse HEAD > .git/current-commit"
                     commitSha = readFile(".git/current-commit").trim()
                     setBuildStatus("...", "pending", "Jenkins Build", commitSha)
-                    sh 'rm -rf build'
-                    sh 'mkdir build'
+                    sh 'rm -rf build prebuilt'
+                    sh 'mkdir build prebuilt'
                 }
 
                 forEachABI("Build everything") { String abi ->
                     dir('build') {
                         withEnv(["ABI=$abi", "ANDROID_PLATFORM=$platform"]) {
                             sh 'runghc ../Main.hs -j everything'
+                        }
+                    }
+                }
+
+                withBuildStatus("Push to fcitx5-android-prebuilt-libs") {
+                    dir('prebuilt') {
+                        withCredentials([string(credentialsId: 'github-commit-status-token', variable: 'token')]) {
+                            sh 'git init'
+                            sh 'git config user.name Jenkins'
+                            sh 'git config user.email 102923727+android-fcitx5@users.noreply.github.com'
+                            sh 'git remote add origin https://$token@github.com/fcitx5-android/fcitx5-android-prebuilt-libs.git'
+                            sh 'git fetch origin'
+                            sh 'git checkout master'
+                            sh 'cp -a ../build/{spell-dict,chinese-addons-data,libime,fmt,libevent,libintl-lite,lua,boost} ./'
+                            sh 'git add .'
+                            sh 'git commit -m "Auto update"'
+                            sh 'git push --set-upstream origin "HEAD:master" --follow-tags --atomic'
                         }
                     }
                 }
