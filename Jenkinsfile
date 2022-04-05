@@ -97,13 +97,13 @@ node("android") {
                     }
                 }
 
-                withBuildStatus("Push to fcitx5-android-prebuilt-libs") {
+                withBuildStatus("Push to prebuilt") {
                     dir('prebuilt') {
                         withCredentials([string(credentialsId: 'github-commit-status-token', variable: 'token')]) {
                             sh 'git init'
-                            sh 'git config user.name Jenkins'
+                            sh 'git config user.name "Jenkins for Fcitx 5 Android"'
                             sh 'git config user.email 102923727+android-fcitx5@users.noreply.github.com'
-                            sh 'git remote add origin https://$token@github.com/fcitx5-android/fcitx5-android-prebuilt-libs.git'
+                            sh 'git remote add origin https://$token@github.com/fcitx5-android/prebuilt.git'
                             sh 'git fetch origin'
                             sh 'git checkout master'
                             sh "rm -rf ${artifactList.join(' ')}"
