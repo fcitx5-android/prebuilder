@@ -242,12 +242,13 @@ fmtRule = do
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "fmt" </> a
+        let buildDir = "build-" <> a
         produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd fmtSrc)
           cmake
           "-B"
-          "build"
+          buildDir
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -257,10 +258,9 @@ fmtRule = do
             "-DFMT_TEST=OFF",
             "-DFMT_DOC=OFF"
           ]
-        cmd_ (Cwd fmtSrc) cmake "--build" "build"
-        cmd_ (Cwd fmtSrc) cmake "--build" "build" "--target" "install"
+        cmd_ (Cwd fmtSrc) cmake "--build" buildDir
+        cmd_ (Cwd fmtSrc) cmake "--build" buildDir "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
-        removeFilesAfter (fmtSrc </> "build") ["//"]
   "fmt" ~> do
     env <- getAndroidEnv
     buildFmt $ WithAndroidEnv Fmt env
@@ -283,12 +283,13 @@ libeventRule = do
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libevent" </> a
+        let buildDir = "build-" <> a
         produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd libeventSrc)
           cmake
           "-B"
-          "build"
+          buildDir
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -304,10 +305,9 @@ libeventRule = do
             "-DEVENT__DISABLE_REGRESS=ON",
             "-DEVENT__DISABLE_SAMPLES=ON"
           ]
-        cmd_ (Cwd libeventSrc) cmake "--build" "build"
-        cmd_ (Cwd libeventSrc) cmake "--build" "build" "--target" "install"
+        cmd_ (Cwd libeventSrc) cmake "--build" buildDir
+        cmd_ (Cwd libeventSrc) cmake "--build" buildDir "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
-        removeFilesAfter (libeventSrc </> "build") ["//"]
         -- post patch
         cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
         cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
@@ -336,12 +336,13 @@ libintlLiteRule = do
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libintl-lite" </> a
+        let buildDir = "build-" <> a
         produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd libintlSrc)
           cmake
           "-B"
-          "build"
+          buildDir
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -349,10 +350,9 @@ libintlLiteRule = do
             "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
             "-DCMAKE_BUILD_TYPE=Release"
           ]
-        cmd_ (Cwd libintlSrc) cmake "--build" "build"
-        cmd_ (Cwd libintlSrc) cmake "--build" "build" "--target" "install"
+        cmd_ (Cwd libintlSrc) cmake "--build" buildDir
+        cmd_ (Cwd libintlSrc) cmake "--build" buildDir "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
-        removeFilesAfter (libintlSrc </> "build") ["//"]
   "libintl-lite" ~> do
     env <- getAndroidEnv
     buildLibintlLite $ WithAndroidEnv LibintlLite env
@@ -375,12 +375,13 @@ luaRule = do
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "lua" </> a
+        let buildDir = "build-" <> a
         produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd luaSrc)
           cmake
           "-B"
-          "build"
+          buildDir
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -389,10 +390,9 @@ luaRule = do
             "-DLUA_BUILD_BINARY=OFF",
             "-DLUA_BUILD_COMPILER=OFF"
           ]
-        cmd_ (Cwd luaSrc) cmake "--build" "build"
-        cmd_ (Cwd luaSrc) cmake "--build" "build" "--target" "install"
+        cmd_ (Cwd luaSrc) cmake "--build" buildDir
+        cmd_ (Cwd luaSrc) cmake "--build" buildDir "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
-        removeFilesAfter (luaSrc </> "build") ["//"]
   "lua" ~> do
     env <- getAndroidEnv
     buildLua $ WithAndroidEnv Lua env
