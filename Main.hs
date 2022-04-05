@@ -260,6 +260,7 @@ fmtRule = do
         cmd_ (Cwd fmtSrc) cmake "--build" "build"
         cmd_ (Cwd fmtSrc) cmake "--build" "build" "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
+        removeFilesAfter (fmtSrc </> "build") ["//"]
   "fmt" ~> do
     env <- getAndroidEnv
     buildFmt $ WithAndroidEnv Fmt env
@@ -306,6 +307,7 @@ libeventRule = do
         cmd_ (Cwd libeventSrc) cmake "--build" "build"
         cmd_ (Cwd libeventSrc) cmake "--build" "build" "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
+        removeFilesAfter (libeventSrc </> "build") ["//"]
         -- post patch
         cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
         cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
@@ -350,6 +352,7 @@ libintlLiteRule = do
         cmd_ (Cwd libintlSrc) cmake "--build" "build"
         cmd_ (Cwd libintlSrc) cmake "--build" "build" "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
+        removeFilesAfter (libintlSrc </> "build") ["//"]
   "libintl-lite" ~> do
     env <- getAndroidEnv
     buildLibintlLite $ WithAndroidEnv LibintlLite env
@@ -389,7 +392,7 @@ luaRule = do
         cmd_ (Cwd luaSrc) cmake "--build" "build"
         cmd_ (Cwd luaSrc) cmake "--build" "build" "--target" "install"
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
-
+        removeFilesAfter (luaSrc </> "build") ["//"]
   "lua" ~> do
     env <- getAndroidEnv
     buildLua $ WithAndroidEnv Lua env
