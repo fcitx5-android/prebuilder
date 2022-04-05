@@ -1,3 +1,5 @@
+package prebuilt
+
 import groovy.transform.Field
 
 @Field
@@ -5,6 +7,9 @@ def abiList = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
 
 @Field
 def commitSha = ""
+
+@Field
+def artifactList = ['spell-dict', 'chinese-addons-data', 'libime', 'fmt', 'libevent', 'libintl-lite', 'lua', 'boost']
 
 def setBuildStatus(String message, String state, String ctx, String commitSha) {
     withCredentials([string(credentialsId: 'github-commit-status-token', variable: 'token')]) {
@@ -103,8 +108,8 @@ node("android") {
                             sh 'git remote add origin https://$token@github.com/fcitx5-android/fcitx5-android-prebuilt-libs.git'
                             sh 'git fetch origin'
                             sh 'git checkout master'
-                            sh 'rm -rf spell-dict chinese-addons-data libime fmt libevent libintl-lite lua boost} ./'
-                            sh 'cp -a ../build/{spell-dict,chinese-addons-data,libime,fmt,libevent,libintl-lite,lua,boost} ./'
+                            sh "rm -rf ${artifactList.join(' ')}"
+                            sh "cp -a ../build/{${artifactList.join(',')}} ./"
                             sh 'git add .'
                             sh 'git commit -m "Auto update"'
                             sh 'git push --set-upstream origin "HEAD:master" --follow-tags --atomic'
