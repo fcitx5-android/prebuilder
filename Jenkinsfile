@@ -60,14 +60,6 @@ def withBuildStatus(String name, Closure closure) {
     }
 }
 
-def forEachABI(String name, Closure closure) {
-    abiList.each { String abi ->
-        withBuildStatus("$name ($abi)") {
-            closure(abi)
-        }
-    }
-}
-
 
 node("android") {
     catchError {
@@ -94,9 +86,9 @@ node("android") {
                     sh 'mkdir build prebuilt'
                 }
 
-                forEachABI("Build everything") { String abi ->
+                withBuildStatus("Build everything") {
                     dir('build') {
-                        withEnv(["ABI=$abi", "ANDROID_PLATFORM=$platform"]) {
+                        withEnv(["ABI=${abiList.join(',')}", "ANDROID_PLATFORM=$platform"]) {
                             sh 'runghc ../Main.hs -j everything'
                         }
                     }
@@ -111,6 +103,7 @@ node("android") {
                             sh 'git remote add origin https://$token@github.com/fcitx5-android/fcitx5-android-prebuilt-libs.git'
                             sh 'git fetch origin'
                             sh 'git checkout master'
+                            sh 'rm -rf spell-dict chinese-addons-data libime fmt libevent libintl-lite lua boost} ./'
                             sh 'cp -a ../build/{spell-dict,chinese-addons-data,libime,fmt,libevent,libintl-lite,lua,boost} ./'
                             sh 'git add .'
                             sh 'git commit -m "Auto update"'

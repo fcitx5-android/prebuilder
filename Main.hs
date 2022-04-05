@@ -9,7 +9,6 @@ module Main where
 
 import Control.Monad (forM_, void)
 import Control.Monad.Extra (fromMaybeM, whenM)
-import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as BS
 import Data.List.Extra (find, replace, split)
 import Data.Maybe (fromJust)
@@ -260,6 +259,7 @@ fmtRule = do
           ]
         cmd_ (Cwd fmtSrc) cmake "--build" "build"
         cmd_ (Cwd fmtSrc) cmake "--build" "build" "--target" "install"
+        removeFilesAfter outPrefix ["//*.py", "//*.pc"]
   "fmt" ~> do
     env <- getAndroidEnv
     buildFmt $ WithAndroidEnv Fmt env
@@ -305,6 +305,7 @@ libeventRule = do
           ]
         cmd_ (Cwd libeventSrc) cmake "--build" "build"
         cmd_ (Cwd libeventSrc) cmake "--build" "build" "--target" "install"
+        removeFilesAfter outPrefix ["//*.py", "//*.pc"]
         -- post patch
         cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
         cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
@@ -348,6 +349,7 @@ libintlLiteRule = do
           ]
         cmd_ (Cwd libintlSrc) cmake "--build" "build"
         cmd_ (Cwd libintlSrc) cmake "--build" "build" "--target" "install"
+        removeFilesAfter outPrefix ["//*.py", "//*.pc"]
   "libintl-lite" ~> do
     env <- getAndroidEnv
     buildLibintlLite $ WithAndroidEnv LibintlLite env
@@ -386,6 +388,8 @@ luaRule = do
           ]
         cmd_ (Cwd luaSrc) cmake "--build" "build"
         cmd_ (Cwd luaSrc) cmake "--build" "build" "--target" "install"
+        removeFilesAfter outPrefix ["//*.py", "//*.pc"]
+
   "lua" ~> do
     env <- getAndroidEnv
     buildLua $ WithAndroidEnv Lua env
