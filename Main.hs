@@ -212,7 +212,7 @@ boostRule = do
     _ <- buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex") env
     getDirectoryFiles
       ("build" </> "out" </> firstAbi </> "include" </> "boost")
-      ["//*.hpp"]
+      ["//*"]
       >>= mapM_ (\x -> copyFile' ("build" </> "out" </> firstAbi </> "include" </> "boost" </> x) $ "boost" </> "include" </> "boost" </> x)
     forM_ abiList $ \a -> do
       getDirectoryFiles
