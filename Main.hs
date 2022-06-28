@@ -74,55 +74,41 @@ tableDictNames = ["db", "erbi", "qxm", "wanfeng", "wbpy", "wbx", "zrm", "cj"]
 
 libimeRule :: Rules ()
 libimeRule = do
-  openGramApraRule
-  openGramDictRule
+  lmRule
+  dictRule
   tableDictRule
   "libime" ~> do
     copyFile' "sc.dict" $ "libime" </> "data" </> "sc.dict"
-    copyFile' "zh_CN.lm.predict" $ "libime" </> "data" </> "zh_CN.lm.predict"
-    copyFile' "zh_CN.lm" $ "libime" </> "data" </> "zh_CN.lm"
+    copyFile' "sc.lm" $ "libime" </> "data" </> "zh_CN.lm"
+    copyFile' "sc.lm.predict" $ "libime" </> "data" </> " zh_CN.lm.predict"
     forM_ tableDictNames $ \table ->
       let name = table <.> "main.dict"
        in copyFile' name ("libime" </> "table" </> name)
 
-openGramApraRule :: Rules ()
-openGramApraRule = do
-  "lm_sc.3gm.arpa" %> \out -> do
-    let src = "lm_sc.3gm.arpa-20140820.tar.bz2"
-    download fcitxDataUrl src "751bab7c55ea93a2cedfb0fbb7eb09f67d4da9c2c55496e5f31eb8580f1d1e2f"
+lmRule :: Rules ()
+lmRule = do
+  "lm_sc.arpa" %> \out -> do
+    let src = "lm_sc.arpa-20220628.tar.xz"
+    download fcitxDataUrl src "35478fcaf1a96c103206678bc741c68256ec102df9a3b7df824cfe72ea97cf04"
     cmd_ "tar" "xf" src out
-  "kenlm_sc.arpa" %> \out -> do
-    let script = "convert_open_gram_arpa.py"
-        src = "lm_sc.3gm.arpa"
-    download libimeRepoDataUrl script "fb8a10aa083c7e566d099e9000539c5c7243c24a44c2357dc4e0f02461b6d011"
-    need [src]
-    (Stdout txt) <- cmd "python" script src
-    writeFile' out txt
-  "zh_CN.lm" %> \out -> do
-    let src = "kenlm_sc.arpa"
+  "sc.lm" %> \out -> do
+    let src = "lm_sc.arpa"
     need [src]
     cmd_ "libime_slm_build_binary -s -a 22 -q 8 trie" src out
-  "zh_CN.lm.predict" %> \out -> do
-    let src1 = "zh_CN.lm"
-        src2 = "kenlm_sc.arpa"
+  "sc.lm.predict" %> \out -> do
+    let src1 = "sc.lm"
+        src2 = "lm_sc.arpa"
     need [src1, src2]
     cmd_ "libime_prediction" src1 src2 out
 
-openGramDictRule :: Rules ()
-openGramDictRule = do
-  "dict.utf8" %> \out -> do
-    let src = "dict.utf8-20211021.tar.xz"
-    download fcitxDataUrl src "300597e6f7f79f788480fd665de8a07bfe90227048b5a7e39f40f43a62a981df"
+dictRule :: Rules ()
+dictRule = do
+  "dict_sc.txt" %> \out -> do
+    let src = "dict_sc.txt-20220628.tar.xz"
+    download fcitxDataUrl src "d0fc77543cc763cacb986d6e650827bd6050579584273f6216ab58672480f17c"
     cmd_ "tar" "xf" src out
-  "dict.converted" %> \out -> do
-    let script = "convert_open_gram_dict.py"
-        src = "dict.utf8"
-    download libimeRepoDataUrl script "e8c42f4d4863dbf32eb7826097ad74b7bc00f660eab913f06e485fffbc4fb8c4"
-    need [src]
-    (Stdout txt) <- cmd "python" script src
-    writeFile' out txt
   "sc.dict" %> \out -> do
-    let src = "dict.converted"
+    let src = "dict_sc.txt"
     need [src]
     cmd_ "libime_pinyindict" src out
 
