@@ -80,7 +80,7 @@ libimeRule = do
   "libime" ~> do
     copyFile' "sc.dict" $ "libime" </> "data" </> "sc.dict"
     copyFile' "sc.lm" $ "libime" </> "data" </> "zh_CN.lm"
-    copyFile' "sc.lm.predict" $ "libime" </> "data" </> " zh_CN.lm.predict"
+    copyFile' "sc.lm.predict" $ "libime" </> "data" </> "zh_CN.lm.predict"
     forM_ tableDictNames $ \table ->
       let name = table <.> "main.dict"
        in copyFile' name ("libime" </> "table" </> name)
