@@ -88,8 +88,8 @@ libimeRule = do
 lmRule :: Rules ()
 lmRule = do
   "lm_sc.arpa" %> \out -> do
-    let src = "lm_sc.arpa-20220628.tar.xz"
-    download fcitxDataUrl src "35478fcaf1a96c103206678bc741c68256ec102df9a3b7df824cfe72ea97cf04"
+    let src = "lm_sc.arpa-20220630.tar.xz"
+    download fcitxDataUrl src "8d3b0fa8fa16b93d0d4590f02da04029c271364b5925c1c902845c374a2a00bf"
     cmd_ "tar" "xf" src out
   "sc.lm" %> \out -> do
     let src = "lm_sc.arpa"
