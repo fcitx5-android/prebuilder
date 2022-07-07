@@ -66,8 +66,8 @@ spellDictRule = do
     copyFile' "en_dict.fscd" $ "spell-dict" </> "en_dict.fscd"
 
 --------------------------------------------------------------------------------
-libimeRepoDataUrl :: String
-libimeRepoDataUrl = "https://raw.githubusercontent.com/fcitx/libime/1.0.7/data/"
+dictNames :: [String]
+dictNames = ["sc", "extb"]
 
 tableDictNames :: [String]
 tableDictNames = ["db", "erbi", "qxm", "wanfeng", "wbpy", "wbx", "zrm", "cj"]
@@ -79,6 +79,7 @@ libimeRule = do
   tableDictRule
   "libime" ~> do
     copyFile' "sc.dict" $ "libime" </> "data" </> "sc.dict"
+    copyFile' "extb.dict" $ "libime" </> "data" </> "extb.dict"
     copyFile' "sc.lm" $ "libime" </> "data" </> "zh_CN.lm"
     copyFile' "sc.lm.predict" $ "libime" </> "data" </> "zh_CN.lm.predict"
     forM_ tableDictNames $ \table ->
@@ -103,12 +104,13 @@ lmRule = do
 
 dictRule :: Rules ()
 dictRule = do
-  "dict_sc.txt" %> \out -> do
-    let src = "dict_sc.txt-20220628.tar.xz"
-    download fcitxDataUrl src "d0fc77543cc763cacb986d6e650827bd6050579584273f6216ab58672480f17c"
-    cmd_ "tar" "xf" src out
-  "sc.dict" %> \out -> do
-    let src = "dict_sc.txt"
+  ("dict_" <>) . (<.> "txt") <$> dictNames |%> \out -> do
+    let src = "dict-20220706.tar.xz"
+    download fcitxDataUrl src "bcd791fff783afb40c1c8e92db3f83734f8b93c9c6ae2c15e1ea8778b9070779"
+    (Stdout txt) <- cmd "tar" "xf" src out
+    produces $ lines txt
+  (<.> "dict") <$> dictNames |%> \out -> do
+    let src = "dict_" <> takeWhile (/= '.') out <.> "txt"
     need [src]
     cmd_ "libime_pinyindict" src out
 
@@ -119,7 +121,7 @@ tableDictRule = do
     download fcitxDataUrl src "6196053c724125e3ae3d8bd6b2f9172d0c83b65b0d410d3cde63b7a8d6ab87b7"
     (Stdout txt) <- cmd "tar" "xf" src out
     produces $ lines txt
-  "*.main.dict" %> \out -> do
+  (<.> "main.dict") <$> tableDictNames |%> \out -> do
     let src = takeWhile (/= '.') out <.> "txt"
     need [src]
     cmd_ "libime_tabledict" src out
