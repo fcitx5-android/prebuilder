@@ -89,8 +89,8 @@ libimeRule = do
 lmRule :: Rules ()
 lmRule = do
   "lm_sc.arpa" %> \out -> do
-    let src = "lm_sc.arpa-20220630.tar.xz"
-    download fcitxDataUrl src "8d3b0fa8fa16b93d0d4590f02da04029c271364b5925c1c902845c374a2a00bf"
+    let src = "lm_sc.arpa-20220810.tar.xz"
+    download fcitxDataUrl src "a11bc97d275adaf195f9bac854368ae06cdb4a0fe1eecf59db5ae580615db4fa"
     cmd_ "tar" "xf" src out
   "sc.lm" %> \out -> do
     let src = "lm_sc.arpa"
@@ -105,8 +105,8 @@ lmRule = do
 dictRule :: Rules ()
 dictRule = do
   ("dict_" <>) . (<.> "txt") <$> dictNames |%> \out -> do
-    let src = "dict-20220706.tar.xz"
-    download fcitxDataUrl src "bcd791fff783afb40c1c8e92db3f83734f8b93c9c6ae2c15e1ea8778b9070779"
+    let src = "dict-20220810.tar.xz"
+    download fcitxDataUrl src "971752f413188007e8d19158c11b85c955e25d7b321ec2275c4b3af6d8a85d26"
     (Stdout txt) <- cmd "tar" "xf" src out
     produces $ lines txt
   (<.> "dict") <$> dictNames |%> \out -> do
