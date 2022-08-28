@@ -177,10 +177,10 @@ boostRule :: Rules ()
 boostRule = do
   buildBoost <- addOracle $ \(WithAndroidEnv Boost {..} AndroidEnv {..}) -> do
     boostAndroidSrc <- getCanonicalizedRootSrc "Boost-for-Android"
-    let boostVersion = "1.78.0"
+    let boostVersion = "1.80.0"
         boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
         boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/" <> boostVersion <> "/source/"
-    download boostUrl boostTar "8681f175d4bdb26c52222665793eef08490d7758529330f98d3b29dd0735bccc"
+    download boostUrl boostTar "1e19565d82e43bc59209a168f5ac899d3ba471d55c7610c677d4ccf2c9c500c0"
     cmd_
       (boostAndroidSrc </> "build-android.sh")
       [ "--boost=" <> boostVersion,
