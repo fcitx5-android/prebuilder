@@ -4,9 +4,9 @@ Build static libraries for [fcitx5-android](https://github.com/fcitx5-android/fc
 
 ## Build environment
 
-* NDK Vesion: `23.1.7779620`
-* Cmake Version: `3.18.1`
-* Platform: `23`
+* NDK Vesion: `25.0.8775105`
+* CMake Version: `3.22.1`
+* Android Platform (API Level): `23`
 
 ## Libraries
 
