@@ -24,29 +24,31 @@ import qualified System.Directory.Extra as IO
 
 --------------------------------------------------------------------------------
 main :: IO ()
-main = shakeArgs shakeOptions $ do
-  usingConfigFile "build.cfg"
-  mainPathRule
-  downloadFileRule
-  spellDictRule
-  libimeRule
-  chineseAddonsRule
-  fmtRule
-  libeventRule
-  libintlLiteRule
-  luaRule
-  boostRule
-  "everything"
-    ~> need
-      [ "spell-dict",
-        "libime",
-        "fmt",
-        "chinese-addons-data",
-        "libevent",
-        "libintl-lite",
-        "lua",
-        "boost"
-      ]
+main = do
+  mp <- getMainPath >>= canonicalizePath . takeDirectory
+  shakeArgs shakeOptions $ do
+    usingConfigFile $ mp </> "build.cfg"
+    mainPathRule
+    downloadFileRule
+    spellDictRule
+    libimeRule
+    chineseAddonsRule
+    fmtRule
+    libeventRule
+    libintlLiteRule
+    luaRule
+    boostRule
+    "everything"
+      ~> need
+        [ "spell-dict",
+          "libime",
+          "fmt",
+          "chinese-addons-data",
+          "libevent",
+          "libintl-lite",
+          "lua",
+          "boost"
+        ]
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
@@ -418,7 +420,7 @@ withAndroidEnv env f = f (getSdkCmake env) (getABIList env)
 
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = do
-  sdkRoot <- fromMaybeM (fail "") $ getEnv "ANDROID_SDK_ROOT"
+  sdkRoot <- env "ANDROID_SDK_ROOT"
   ndkRoot <- env "ANDROID_NDK_ROOT"
   sdkCmakeVersion <- env "CMAKE_VERSION"
   platform <- read <$> env "ANDROID_PLATFORM"
