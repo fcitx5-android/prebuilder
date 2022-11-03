@@ -14,6 +14,7 @@ import Data.List.Extra (find, replace, split)
 import Data.Maybe (fromJust)
 import Development.Shake
 import Development.Shake.Classes
+import Development.Shake.Config
 import Development.Shake.FilePath
 import Development.Shake.Rule
 import GHC.Generics (Generic)
@@ -24,6 +25,7 @@ import qualified System.Directory.Extra as IO
 --------------------------------------------------------------------------------
 main :: IO ()
 main = shakeArgs shakeOptions $ do
+  usingConfigFile "build.cfg"
   mainPathRule
   downloadFileRule
   spellDictRule
@@ -54,8 +56,9 @@ fcitxDataUrl = "https://download.fcitx-im.org/data/"
 spellDictRule :: Rules ()
 spellDictRule = do
   "en_dict.txt" %> \out -> do
-    let src = "en_dict-20121020.tar.gz"
-    download fcitxDataUrl src "c44a5d7847925eea9e4d2d04748d442cd28dd9299a0b572ef7d91eac4f5a6ceb"
+    src <- getConfig' "en_dict"
+    sha256 <- getConfig' "en_dict_sha256"
+    download fcitxDataUrl src sha256
     cmd_ "tar" "xf" src out
   "en_dict.fscd" %> \out -> do
     let src = "en_dict.txt"
@@ -89,8 +92,9 @@ libimeRule = do
 lmRule :: Rules ()
 lmRule = do
   "lm_sc.arpa" %> \out -> do
-    let src = "lm_sc.arpa-20220810.tar.xz"
-    download fcitxDataUrl src "a11bc97d275adaf195f9bac854368ae06cdb4a0fe1eecf59db5ae580615db4fa"
+    src <- getConfig' "lm_sc"
+    sha256 <- getConfig' "lm_sc_sha256"
+    download fcitxDataUrl src sha256
     cmd_ "tar" "xf" src out
   "sc.lm" %> \out -> do
     let src = "lm_sc.arpa"
@@ -105,8 +109,9 @@ lmRule = do
 dictRule :: Rules ()
 dictRule = do
   ("dict_" <>) . (<.> "txt") <$> dictNames |%> \out -> do
-    let src = "dict-20220810.tar.xz"
-    download fcitxDataUrl src "971752f413188007e8d19158c11b85c955e25d7b321ec2275c4b3af6d8a85d26"
+    src <- getConfig' "dict"
+    sha256 <- getConfig' "dict_sha256"
+    download fcitxDataUrl src sha256
     (Stdout txt) <- cmd "tar" "xf" src out
     produces $ lines txt
   (<.> "dict") <$> dictNames |%> \out -> do
@@ -117,8 +122,9 @@ dictRule = do
 tableDictRule :: Rules ()
 tableDictRule = do
   (<.> "txt") <$> tableDictNames |%> \out -> do
-    let src = "table.tar.gz"
-    download fcitxDataUrl src "6196053c724125e3ae3d8bd6b2f9172d0c83b65b0d410d3cde63b7a8d6ab87b7"
+    src <- getConfig' "table"
+    sha256 <- getConfig' "table_sha256"
+    download fcitxDataUrl src sha256
     (Stdout txt) <- cmd "tar" "xf" src out
     produces $ lines txt
   (<.> "main.dict") <$> tableDictNames |%> \out -> do
@@ -127,8 +133,6 @@ tableDictRule = do
     cmd_ "libime_tabledict" src out
 
 --------------------------------------------------------------------------------
-chineseAddonsRepoDataUrl :: String
-chineseAddonsRepoDataUrl = "https://raw.githubusercontent.com/fcitx/fcitx5-chinese-addons/5.0.9/im/pinyin/"
 
 chineseAddonsRule :: Rules ()
 chineseAddonsRule = do
@@ -143,27 +147,30 @@ chineseAddonsRule = do
 
 pinyinDictRule :: Rules ()
 pinyinDictRule = do
-  let dict name sha256 =
+  let dict name =
         name <.> "dict" %> \out -> do
           let src = name <.> "txt"
+          chineseAddonsRepoDataUrl <- getConfig' "chinese_addon_repo"
+          sha256 <- getConfig' $ name <> "_sha256"
           download chineseAddonsRepoDataUrl src sha256
           cmd_ "libime_pinyindict" src out
-
-  dict "chaizi" "cd659605360120f7390fda1a278eea12c4df6d763a95c8099068ab09cfafd058"
-  dict "emoji" "1e34d7ac78d1e1879829d1a8533242047ec8b5c2a2d64f26ef6a6bf2dc551994"
+  dict "chaizi"
+  dict "emoji"
 
 pinyinStrokeRule :: Rules ()
 pinyinStrokeRule = do
   "py_stroke.mb" %> \out -> do
-    let src = "py_stroke-20121124.tar.gz"
-    download fcitxDataUrl src "8eb128a9bfa43952e67cf2fcee1fd134c6f4cfd317bc2f6c38a615f5eb64e248"
+    src <- getConfig' "py_stroke"
+    sha256 <- getConfig' "py_stroke_sha256"
+    download fcitxDataUrl src sha256
     cmd_ "tar" "xf" src out
 
 pinyinTableRule :: Rules ()
 pinyinTableRule = do
   "py_table.mb" %> \out -> do
-    let src = "py_table-20121124.tar.gz"
-    download fcitxDataUrl src "42146ac97de6c13d55f9e99ed873915f4c66739e9c11532a34556badf9792c04"
+    src <- getConfig' "py_table"
+    sha256 <- getConfig' "py_table_sha256"
+    download fcitxDataUrl src sha256
     cmd_ "tar" "xf" src out
 
 --------------------------------------------------------------------------------
@@ -177,10 +184,11 @@ boostRule :: Rules ()
 boostRule = do
   buildBoost <- addOracle $ \(WithAndroidEnv Boost {..} AndroidEnv {..}) -> do
     boostAndroidSrc <- getCanonicalizedRootSrc "Boost-for-Android"
-    let boostVersion = "1.80.0"
-        boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
+    boostVersion <- getConfig' "boost_version"
+    sha256 <- getConfig' "boost_sha256"
+    let boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
         boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/" <> boostVersion <> "/source/"
-    download boostUrl boostTar "1e19565d82e43bc59209a168f5ac899d3ba471d55c7610c677d4ccf2c9c500c0"
+    download boostUrl boostTar sha256
     cmd_
       (boostAndroidSrc </> "build-android.sh")
       [ "--boost=" <> boostVersion,
@@ -441,18 +449,19 @@ getCanonicalizedRootSrc fp = do
 
 mainPathRule :: Rules ()
 mainPathRule = void $
-  addOracleCache $ \MainPath -> takeDirectory <$> liftIO getMainPath
+  addOracleCache $
+    \MainPath -> takeDirectory <$> liftIO getMainPath
 
 getMainPath :: HasCallStack => IO FilePath
 getMainPath =
-  withFrozenCallStack $
-    canonicalizePath
+  withFrozenCallStack
+    $ canonicalizePath
       . srcLocFile
       . snd
       . fromJust
       . find ((== "getMainPath") . fst)
       . getCallStack
-      $ callStack
+    $ callStack
 
 --------------------------------------------------------------------------------
 
@@ -489,7 +498,7 @@ downloadFileRule = addBuiltinRule noLint noIdentity $ \DownloadFile {..} mOld mo
         now == downloadSha256,
         Just (BS.unpack -> old) <- mOld,
         old == now -> do
-        pure $ RunResult ChangedNothing (BS.pack now) ()
+          pure $ RunResult ChangedNothing (BS.pack now) ()
     _ -> do
       let url = downloadBaseUrl <> downloadFileName
       cmd_ "curl" "-LO" url
@@ -505,5 +514,9 @@ sha256sum file = do
 
 download :: String -> FilePath -> String -> Action ()
 download downloadBaseUrl downloadFileName downloadSha256 = apply1 DownloadFile {..}
+
+--------------------------------------------------------------------------------
+getConfig' :: String -> Action String
+getConfig' x = fromJust <$> getConfig x
 
 --------------------------------------------------------------------------------
