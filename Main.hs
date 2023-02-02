@@ -1,5 +1,9 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE Haskell2010 #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -9,7 +13,7 @@ module Main where
 
 import Control.Monad (forM_, void)
 import Control.Monad.Extra (fromMaybeM, whenM)
-import qualified Data.ByteString.Char8 as BS
+import Data.ByteString.Char8 qualified as BS
 import Data.List.Extra (find, replace, split)
 import Data.Maybe (fromJust)
 import Development.Shake
@@ -20,7 +24,7 @@ import Development.Shake.Rule
 import GHC.Generics (Generic)
 import GHC.Stack
 import System.Directory.Extra
-import qualified System.Directory.Extra as IO
+import System.Directory.Extra qualified as IO
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -178,7 +182,8 @@ pinyinTableRule = do
 --------------------------------------------------------------------------------
 
 newtype Boost = Boost {boostLib :: String}
-  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+  deriving stock (Show, Typeable, Eq, Generic)
+  deriving newtype (Hashable, Binary, NFData)
 
 type instance RuleResult Boost = ()
 
@@ -225,7 +230,8 @@ boostRule = do
 --------------------------------------------------------------------------------
 
 data Fmt = Fmt
-  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult Fmt = ()
 
@@ -234,14 +240,11 @@ fmtRule = do
   buildFmt <- addOracleCache $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- getCanonicalizedRootSrc "fmt"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    (src, production) <- getSrcAndProduction "fmt"
-    needSrc fmtSrc src
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "fmt" </> a
         let buildDir = "build-" <> a
-        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd fmtSrc)
           cmake
@@ -275,14 +278,11 @@ libeventRule = do
   buildLibevent <- addOracleCache $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
     libeventSrc <- getCanonicalizedRootSrc "libevent"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    (src, production) <- getSrcAndProduction "libevent"
-    needSrc libeventSrc src
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libevent" </> a
         let buildDir = "build-" <> a
-        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd libeventSrc)
           cmake
@@ -319,7 +319,8 @@ libeventRule = do
 --------------------------------------------------------------------------------
 
 data LibintlLite = LibintlLite
-  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult LibintlLite = ()
 
@@ -328,14 +329,11 @@ libintlLiteRule = do
   buildLibintlLite <- addOracleCache $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
     libintlSrc <- getCanonicalizedRootSrc "libintl-lite"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    (src, production) <- getSrcAndProduction "libintl-lite"
-    needSrc libintlSrc src
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libintl-lite" </> a
         let buildDir = "build-" <> a
-        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd libintlSrc)
           cmake
@@ -358,7 +356,8 @@ libintlLiteRule = do
 --------------------------------------------------------------------------------
 
 data Lua = Lua
-  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult Lua = ()
 
@@ -366,15 +365,12 @@ luaRule :: Rules ()
 luaRule = do
   buildLua <- addOracleCache $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
     luaSrc <- getCanonicalizedRootSrc "Lua"
-    (src, production) <- getSrcAndProduction "lua"
-    needSrc luaSrc src
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "lua" </> a
         let buildDir = "build-" <> a
-        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd luaSrc)
           cmake
@@ -404,7 +400,8 @@ data AndroidEnv = AndroidEnv
     platform :: Int,
     abi :: String
   }
-  deriving (Eq, Show, Typeable, Generic, Hashable, Binary, NFData)
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
 
 getSdkCmake :: AndroidEnv -> FilePath
 getSdkCmake AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCmakeVersion </> "bin" </> "cmake"
@@ -430,7 +427,8 @@ getAndroidEnv = do
     env name = fromMaybeM (fail $ "Environment variable " <> name <> " is unset!") $ getEnv name
 
 data WithAndroidEnv k = WithAndroidEnv k AndroidEnv
-  deriving (Eq, Generic, Hashable, Binary, NFData)
+  deriving stock (Eq, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
 
 instance Show k => Show (WithAndroidEnv k) where
   show (WithAndroidEnv k n) = show k <> " (" <> show n <> ")"
@@ -467,26 +465,13 @@ getMainPath =
 
 --------------------------------------------------------------------------------
 
-getSrcAndProduction :: String -> Action ([String], [String])
-getSrcAndProduction name = do
-  list <- getCanonicalizedRootSrc "list"
-  (,) <$> readFileLines (list </> name <> "-i") <*> readFileLines (list </> name <> "-o")
-
-needSrc :: FilePath -> [FilePattern] -> Action ()
-needSrc srcRoot src =
-  getDirectoryFiles
-    srcRoot
-    src
-    >>= need . fmap (srcRoot </>)
-
---------------------------------------------------------------------------------
-
 data DownloadFile = DownloadFile
   { downloadBaseUrl :: String,
     downloadFileName :: FilePath,
     downloadSha256 :: String
   }
-  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult DownloadFile = ()
 

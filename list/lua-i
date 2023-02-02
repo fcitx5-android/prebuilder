@@ -1,5 +1,0 @@
-lua-5.4.4/src//*
-lua-5.4.4/lua-5.4.4/include//*
-lua-5.4.4/CMakeLists.txt
-lua-5.4.4/LuaConfig.cmake.in
-CMakeLists.txt
