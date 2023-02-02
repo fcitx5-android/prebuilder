@@ -1,8 +1,0 @@
-cmake/*
-compat//*
-include//*
-*.c
-*.h
-*.cmake
-*.in
-CMakeLists.txt
