@@ -45,6 +45,7 @@ main = do
     libeventRule
     libintlLiteRule
     luaRule
+    openccRule
     boostRule
     "everything"
       ~> need
@@ -55,6 +56,7 @@ main = do
           "libevent",
           "libintl-lite",
           "lua",
+          "opencc",
           "boost"
         ]
 
@@ -393,6 +395,55 @@ luaRule = do
   "lua" ~> do
     env <- getAndroidEnv
     buildLua $ WithAndroidEnv Lua env
+
+--------------------------------------------------------------------------------
+
+data OpenCC = OpenCC
+  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+
+type instance RuleResult OpenCC = ()
+
+openccRule :: Rules ()
+openccRule = do
+  buildOpenCC <- addOracleCache $ \(WithAndroidEnv OpenCC env@AndroidEnv {..}) -> do
+    openccSrc <- getCanonicalizedRootSrc "OpenCC"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    (src, production) <- getSrcAndProduction "opencc"
+    needSrc openccSrc src
+    let toolchain = getCmakeToolchain env
+    withAndroidEnv env $ \cmake abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "opencc" </> a
+        let buildDir = "build-" <> a
+        produces $ fmap (outPrefix </>) production
+        cmd_
+          (Cwd openccSrc)
+          cmake
+          "-B"
+          buildDir
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DBUILD_DOCUMENTATION=OFF",
+            "-DBUILD_PYTHON=OFF",
+            "-DENABLE_GTEST=OFF",
+            "-DENABLE_BENCHMARK=OFF",
+            "-DENABLE_DARTS=OFF",
+            "-DUSE_SYSTEM_MARISA=OFF",
+            "-DUSE_SYSTEM_PYBIND11=OFF",
+            "-DUSE_SYSTEM_RAPIDJSON=OFF",
+            "-DUSE_SYSTEM_TCLAP=OFF"
+          ]
+        cmd_ (Cwd openccSrc) cmake "--build" buildDir
+        cmd_ (Cwd openccSrc) cmake "--build" buildDir "--target" "install"
+        removeFilesAfter outPrefix ["//*.py", "//*.pc"]
+  "opencc" ~> do
+    env <- getAndroidEnv
+    buildOpenCC $ WithAndroidEnv OpenCC env
 
 --------------------------------------------------------------------------------
 
