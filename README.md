@@ -16,5 +16,5 @@ Build static libraries for [fcitx5-android](https://github.com/fcitx5-android/fc
 * libintl-lite: [j-jorge/libintl-lite](https://github.com/j-jorge/libintl-lite)
 * libime data: [fcitx/libime](https://github.com/fcitx/libime)
 * lua: [walterschell/LuaCMake](https://github.com/walterschell/Lua)
-* opencc [BYVoid/OpenCC](https://github.com/BYVoid/OpenCC)
+* opencc: [BYVoid/OpenCC](https://github.com/BYVoid/OpenCC)
 * spell-dict data: [fcitx/fcitx5](https://github.com/fcitx/fcitx5/blob/master/src/modules/spell/dict)
