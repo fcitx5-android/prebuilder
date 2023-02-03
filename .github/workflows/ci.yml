@@ -44,3 +44,14 @@ jobs:
           mkdir build
           cd build
           runghc ../Main.hs -j everything
+
+      - name: Move libraries to prebuilt
+        run: |
+          mkdir -p build/prebuilt
+          cp -a build/{'spell-dict','chinese-addons-data','libime','fmt','libevent','libintl-lite','lua','opencc','boost'} \
+                build/prebuilt/
+
+      - name: Upload prebuilt
+        uses: actions/upload-artifact@v3
+        with:
+          path: build/prebuilt
