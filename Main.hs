@@ -399,7 +399,8 @@ luaRule = do
 --------------------------------------------------------------------------------
 
 data OpenCC = OpenCC
-  deriving (Show, Typeable, Eq, Generic, Hashable, Binary, NFData)
+  deriving stock (Eq, Show, Typeable, Generic)
+￼  deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult OpenCC = ()
 
@@ -408,14 +409,11 @@ openccRule = do
   buildOpenCC <- addOracleCache $ \(WithAndroidEnv OpenCC env@AndroidEnv {..}) -> do
     openccSrc <- getCanonicalizedRootSrc "OpenCC"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    (src, production) <- getSrcAndProduction "opencc"
-    needSrc openccSrc src
     let toolchain = getCmakeToolchain env
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "opencc" </> a
         let buildDir = "build-" <> a
-        produces $ fmap (outPrefix </>) production
         cmd_
           (Cwd openccSrc)
           cmake
