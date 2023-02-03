@@ -400,7 +400,7 @@ luaRule = do
 
 data OpenCC = OpenCC
   deriving stock (Eq, Show, Typeable, Generic)
-￼  deriving anyclass (Hashable, Binary, NFData)
+  deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult OpenCC = ()
 
