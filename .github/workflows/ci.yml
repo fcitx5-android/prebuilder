@@ -36,6 +36,7 @@ jobs:
 
       - name: Build
         run: |
+          export PATH=${PATH}:${ANDROID_SDK_ROOT}/cmake/${{ env.cmake_version }}/bin
           export ANDROID_NDK_ROOT=${ANDROID_SDK_ROOT}/ndk/${{ env.ndk_version }}
           export CMAKE_VERSION=${{ env.cmake_version }}
           export ANDROID_PLATFORM=${{ env.platform }}

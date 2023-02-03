@@ -256,6 +256,7 @@ fmtRule = do
           cmake
           "-B"
           buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -298,6 +299,7 @@ libeventRule = do
           cmake
           "-B"
           buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -344,6 +346,7 @@ libintlLiteRule = do
           cmake
           "-B"
           buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -381,6 +384,7 @@ luaRule = do
           cmake
           "-B"
           buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
@@ -419,6 +423,7 @@ openccRule = do
           cmake
           "-B"
           buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
