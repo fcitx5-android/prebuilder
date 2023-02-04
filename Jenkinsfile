@@ -109,7 +109,7 @@ node("android") {
                             sh "rm -rf ${artifactList.join(' ')}"
                             sh "cp -a ../build/{${artifactList.join(',')}} ./"
                             sh 'git add .'
-                            sh 'git commit -m "Auto update"'
+                            sh 'git diff-index --quiet HEAD || git commit -m "Auto update"'
                             sh 'git push --set-upstream origin "HEAD:master" --follow-tags --atomic'
                         }
                     }
