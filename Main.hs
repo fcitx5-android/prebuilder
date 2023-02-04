@@ -237,7 +237,7 @@ type instance RuleResult Fmt = ()
 
 fmtRule :: Rules ()
 fmtRule = do
-  buildFmt <- addOracleCache $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
+  buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- getCanonicalizedRootSrc "fmt"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
@@ -275,7 +275,7 @@ type instance RuleResult Libevent = ()
 
 libeventRule :: Rules ()
 libeventRule = do
-  buildLibevent <- addOracleCache $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
+  buildLibevent <- addOracle $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
     libeventSrc <- getCanonicalizedRootSrc "libevent"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
@@ -326,7 +326,7 @@ type instance RuleResult LibintlLite = ()
 
 libintlLiteRule :: Rules ()
 libintlLiteRule = do
-  buildLibintlLite <- addOracleCache $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
+  buildLibintlLite <- addOracle $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
     libintlSrc <- getCanonicalizedRootSrc "libintl-lite"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
@@ -363,7 +363,7 @@ type instance RuleResult Lua = ()
 
 luaRule :: Rules ()
 luaRule = do
-  buildLua <- addOracleCache $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
+  buildLua <- addOracle $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
     luaSrc <- getCanonicalizedRootSrc "Lua"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
