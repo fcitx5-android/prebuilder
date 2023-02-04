@@ -446,7 +446,23 @@ openccRule = do
         removeFilesAfter outPrefix ["//*.py", "//*.pc"]
   "opencc" ~> do
     env <- getAndroidEnv
-    buildOpenCC $ WithAndroidEnv OpenCC env
+    -- since dictionary files are the same regardless of abi
+    -- we take a random one
+    let abiList = getABIList env
+        firstAbi = head abiList
+    _ <- buildOpenCC $ WithAndroidEnv OpenCC env
+    getDirectoryFiles
+      ("opencc" </> firstAbi </> "share" </> "opencc")
+      ["//*"]
+      >>= mapM_ (\x -> copyFile' ("opencc" </> firstAbi </> "share" </> "opencc" </> x) $ "opencc" </> "data" </> x)
+    forM_ abiList $ \a -> do
+      -- symlink dictionaries for each abi to reduce size
+      let dataPath = "opencc" </> a </> "share" </> "opencc"
+      liftIO $ whenM (doesPathExist dataPath) $ removePathForcibly dataPath
+      liftIO $ createDirectoryLink (".." </> ".." </> "data") dataPath
+      -- remove unused binaries to reduce size
+      let binPath = "opencc" </> a </> "bin"
+      liftIO $ whenM (doesPathExist binPath) $ removePathForcibly binPath
 
 --------------------------------------------------------------------------------
 
