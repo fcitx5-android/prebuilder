@@ -27,10 +27,14 @@ import System.Directory.Extra
 import System.Directory.Extra qualified as IO
 
 --------------------------------------------------------------------------------
+
+prebuilderVersion :: String
+prebuilderVersion = "2"
+
 main :: IO ()
 main = do
   mp <- getMainPath >>= canonicalizePath . takeDirectory
-  shakeArgs shakeOptions $ do
+  shakeArgs shakeOptions {shakeReport = ["report.html"], shakeVersion = prebuilderVersion} $ do
     usingConfigFile $ mp </> "build.cfg"
     mainPathRule
     downloadFileRule
