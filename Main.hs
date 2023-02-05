@@ -283,6 +283,10 @@ libeventRule = do
     libeventSrc <- getCanonicalizedRootSrc "libevent"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
+    -- make cmake generate relative _IMPORT_PREFIX
+    cmd_ (Cwd libeventSrc) "sed" "-i" "1456s|${CMAKE_INSTALL_PREFIX}/||" "CMakeLists.txt"
+    cmd_ (Cwd libeventSrc) "sed" "-i" "1475{\\|\"${PROJECT_SOURCE_DIR}/include\"|d}" "CMakeLists.txt"
+    cmd_ (Cwd libeventSrc) "sed" "-i" "1475s|${PROJECT_BINARY_DIR}/||" "CMakeLists.txt"
     withAndroidEnv env $ \cmake abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libevent" </> a
@@ -308,14 +312,9 @@ libeventRule = do
             "-DEVENT__DISABLE_SAMPLES=ON"
           ]
         cmd_ (Cwd libeventSrc) cmake "--build" buildDir
-        cmd_ (Cwd libeventSrc) cmake "--build" buildDir "--target" "install"
-        removeFilesAfter outPrefix ["//*.py", "//*.pc"]
-        -- post patch
-        cmd_ (Cwd outPrefix) "sed" "-i" "121s/_event_h/true/" "lib/cmake/libevent/LibeventConfig.cmake"
-        cmd_ (Cwd outPrefix) "sed" "-i" "135s/_event_lib/true/" "lib/cmake/libevent/LibeventConfig.cmake"
-        cmd_ (Cwd outPrefix) "sed" "-i" ["45{/^set(_IMPORT_PREFIX/d}", "lib/cmake/libevent/LibeventTargets-static.cmake"]
-        cmd_ (Cwd outPrefix) "sed" "-i" ["45iget_filename_component(LIBEVENT_CMAKE_DIR \"${CMAKE_CURRENT_LIST_FILE}\" PATH)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
-        cmd_ (Cwd outPrefix) "sed" "-i" ["46iget_filename_component(_IMPORT_PREFIX \"${LIBEVENT_CMAKE_DIR}/../../..\" ABSOLUTE)", "lib/cmake/libevent/LibeventTargets-static.cmake"]
+        -- avoid void installing pkgconf files and python scripts
+        cmd_ (Cwd libeventSrc) cmake "--install" buildDir "--component" "lib"
+        cmd_ (Cwd libeventSrc) cmake "--install" buildDir "--component" "dev"
   "libevent" ~> do
     env <- getAndroidEnv
     buildLibevent $ WithAndroidEnv Libevent env
