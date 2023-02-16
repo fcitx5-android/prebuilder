@@ -18,3 +18,7 @@
 	path = Lua
 	url = https://github.com/walterschell/Lua
 	ignore = untracked
+[submodule "OpenCC"]
+	path = OpenCC
+	url = https://github.com/BYVoid/OpenCC
+	ignore = untracked

@@ -10,18 +10,18 @@ jobs:
     container: archlinux
     env:
       abi: armeabi-v7a,arm64-v8a,x86,x86_64
-      ndk_version: 23.1.7779620
-      cmake_version: 3.18.1
+      ndk_version: 25.0.8775105
+      cmake_version: 3.22.1
       platform: 23
 
     steps:
       - name: Install build dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm base-devel ghc git unzip haskell-shake libime jdk11-openjdk python
+          pacman -S --needed --noconfirm base-devel ghc git unzip haskell-shake libime opencc jdk11-openjdk python
 
       - name: Fetch source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -43,3 +43,16 @@ jobs:
           mkdir build
           cd build
           runghc ../Main.hs -j everything
+
+      - name: Move libraries to prebuilt and compress
+        run: |
+          mkdir -p build/prebuilt
+          cp -a build/{'spell-dict','chinese-addons-data','libime','fmt','libevent','libintl-lite','lua','opencc','boost'} \
+                build/prebuilt/
+          cd build
+          tar --zstd -cf prebuilt.tar.zst prebuilt/
+
+      - name: Upload prebuilt
+        uses: actions/upload-artifact@v3
+        with:
+          path: build/prebuilt.tar.zst
