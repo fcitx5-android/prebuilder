@@ -269,6 +269,7 @@ fmtRule = do
           ]
         cmd_ (Cwd fmtSrc) cmake "--build" buildDir
         cmd_ (Cwd fmtSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["lib/pkgconfig"]
   "fmt" ~> do
     env <- getAndroidEnv
     buildFmt $ WithAndroidEnv Fmt env
@@ -449,6 +450,7 @@ openccRule = do
           ]
         cmd_ (Cwd openccSrc) cmake "--build" buildDir
         cmd_ (Cwd openccSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["bin", "lib/pkgconfig"]
   "opencc" ~> do
     env <- getAndroidEnv
     -- since dictionary files are the same regardless of abi
@@ -465,11 +467,6 @@ openccRule = do
       let dataPath = "opencc" </> a </> "share" </> "opencc"
       liftIO $ whenM (doesPathExist dataPath) $ removePathForcibly dataPath
       liftIO $ createDirectoryLink (".." </> ".." </> "data") dataPath
-      -- remove unused binaries to reduce size
-      let binPath = "opencc" </> a </> "bin"
-      liftIO $ whenM (doesPathExist binPath) $ removePathForcibly binPath
-      let pkgconfigPath = "opencc" </> a </> "lib" </> "pkgconfig"
-      liftIO $ whenM (doesPathExist pkgconfigPath) $ removePathForcibly pkgconfigPath
 
 --------------------------------------------------------------------------------
 
