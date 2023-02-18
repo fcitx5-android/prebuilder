@@ -7,7 +7,7 @@ def abiList = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
 def commitSha = ""
 
 @Field
-def artifactList = ['spell-dict', 'chinese-addons-data', 'libime', 'fmt', 'libevent', 'libintl-lite', 'lua', 'boost']
+def artifactList = ['spell-dict', 'chinese-addons-data', 'libime', 'fmt', 'libevent', 'libintl-lite', 'lua', 'boost', 'opencc']
 
 def setBuildStatus(String message, String state, String ctx, String commitSha) {
     withCredentials([string(credentialsId: 'github-commit-status-token', variable: 'token')]) {
