@@ -288,9 +288,12 @@ libeventRule = do
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
     -- make cmake generate relative _IMPORT_PREFIX
-    cmd_ (Cwd libeventSrc) "sed" "-i" "1456s|${CMAKE_INSTALL_PREFIX}/||" "CMakeLists.txt"
-    cmd_ (Cwd libeventSrc) "sed" "-i" "1475{\\|\"${PROJECT_SOURCE_DIR}/include\"|d}" "CMakeLists.txt"
-    cmd_ (Cwd libeventSrc) "sed" "-i" "1475s|${PROJECT_BINARY_DIR}/||" "CMakeLists.txt"
+    cmd_ (Cwd libeventSrc) Shell "sed -i 1456s|${CMAKE_INSTALL_PREFIX}/|| CMakeLists.txt"
+    cmd_ (Cwd libeventSrc) Shell "sed -i 1475{\\|\"${PROJECT_SOURCE_DIR}/include\"|d} CMakeLists.txt"
+    cmd_ (Cwd libeventSrc) Shell "sed -i 1475s|${PROJECT_BINARY_DIR}/|| CMakeLists.txt"
+    -- fix LibeventConfig.cmake find_{path,library} calls in ndk toolchain
+    cmd_ (Cwd libeventSrc) Shell "sed -i '120s|NO_DEFAULT_PATH)|NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)|' cmake/LibeventConfig.cmake.in"
+    cmd_ (Cwd libeventSrc) Shell "sed -i '134s|NO_DEFAULT_PATH)|NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)|' cmake/LibeventConfig.cmake.in"
     withAndroidEnv env $ \cmake ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libevent" </> a
