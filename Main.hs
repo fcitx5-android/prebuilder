@@ -419,6 +419,9 @@ openccRule = do
     openccSrc <- getCanonicalizedRootSrc "OpenCC"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     let toolchain = getCmakeToolchain env
+    -- remove absolute path by __FILE__ macro
+    --cmd_ (Cwd openccSrc) Shell "sed -i 18{/^set_target_properties/i target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\n} deps/marisa-0.2.6/CMakeLists.txt"
+    cmd_ (Cwd openccSrc) Shell "sed -i '18s|\\(^set_target_properties.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' deps/marisa-0.2.6/CMakeLists.txt"
     withAndroidEnv env $ \cmake ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "opencc" </> a
