@@ -47,10 +47,9 @@ jobs:
 
       - name: Move libraries to prebuilt and compress
         run: |
-          mkdir -p build/prebuilt
-          cp -a build/{'spell-dict','chinese-addons-data','libime','fmt','libevent','libintl-lite','lua','opencc','boost'} \
-                build/prebuilt/
           cd build
+          mkdir prebuilt
+          for file in $(<artifacts.txt); do cp -a "$file" prebuilt/; done
           tar --zstd -cf prebuilt.tar.zst prebuilt/
 
       - name: Upload prebuilt

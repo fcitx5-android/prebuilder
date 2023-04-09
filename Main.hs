@@ -48,19 +48,21 @@ main = do
     openccRule
     boostRule
     anthyDictRule
-    "everything"
-      ~> need
-        [ "spell-dict",
-          "libime",
-          "fmt",
-          "chinese-addons-data",
-          "libevent",
-          "libintl-lite",
-          "lua",
-          "opencc",
-          "boost",
-          "anthy-dict"
-        ]
+    "everything" ~> do
+      let artifacts =
+            [ "spell-dict",
+              "libime",
+              "fmt",
+              "chinese-addons-data",
+              "libevent",
+              "libintl-lite",
+              "lua",
+              "opencc",
+              "boost",
+              "anthy-dict"
+            ]
+      need artifacts
+      writeFileLines "artifacts.txt" artifacts
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
@@ -253,7 +255,11 @@ fmtRule = do
         let outPrefix = out </> "fmt" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd fmtSrc) cmake "-B" buildDir "-GNinja"
+          (Cwd fmtSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
@@ -294,7 +300,11 @@ libeventRule = do
         let outPrefix = out </> "libevent" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd libeventSrc) cmake "-B" buildDir "-GNinja"
+          (Cwd libeventSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
@@ -336,7 +346,11 @@ libintlLiteRule = do
         let outPrefix = out </> "libintl-lite" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd libintlSrc) cmake "-B" buildDir "-GNinja"
+          (Cwd libintlSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
@@ -369,7 +383,11 @@ luaRule = do
         let outPrefix = out </> "lua" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd luaSrc) cmake "-B" buildDir "-GNinja"
+          (Cwd luaSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
@@ -403,14 +421,18 @@ openccRule = do
     openccSrc <- getCanonicalizedRootSrc "OpenCC"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     -- remove absolute path by __FILE__ macro
-    --cmd_ (Cwd openccSrc) Shell "sed -i 18{/^set_target_properties/i target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\n} deps/marisa-0.2.6/CMakeLists.txt"
+    -- cmd_ (Cwd openccSrc) Shell "sed -i 18{/^set_target_properties/i target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\n} deps/marisa-0.2.6/CMakeLists.txt"
     cmd_ (Cwd openccSrc) Shell "sed -i '18s|\\(^set_target_properties.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' deps/marisa-0.2.6/CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "opencc" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd openccSrc) cmake "-B" buildDir "-GNinja"
+          (Cwd openccSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
