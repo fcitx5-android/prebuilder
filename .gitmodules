@@ -22,3 +22,6 @@
 	path = OpenCC
 	url = https://github.com/BYVoid/OpenCC
 	ignore = untracked
+[submodule "anthy-unicode"]
+	path = anthy-unicode
+	url = git@github.com:fujiwarat/anthy-unicode.git

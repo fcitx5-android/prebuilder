@@ -36,6 +36,7 @@ jobs:
 
       - name: Build
         run: |
+          export LANG=C.UTF-8
           export ANDROID_NDK_ROOT=${ANDROID_SDK_ROOT}/ndk/${{ env.ndk_version }}
           export CMAKE_VERSION=${{ env.cmake_version }}
           export ANDROID_PLATFORM=${{ env.platform }}

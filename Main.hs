@@ -47,6 +47,7 @@ main = do
     luaRule
     openccRule
     boostRule
+    anthyDictRule
     "everything"
       ~> need
         [ "spell-dict",
@@ -57,7 +58,8 @@ main = do
           "libintl-lite",
           "lua",
           "opencc",
-          "boost"
+          "boost",
+          "anthy-dict"
         ]
 
 fcitxDataUrl :: String
@@ -450,6 +452,18 @@ openccRule = do
       let dataPath = "opencc" </> a </> "share" </> "opencc"
       liftIO $ whenM (doesPathExist dataPath) $ removePathForcibly dataPath
       liftIO $ createDirectoryLink (".." </> ".." </> "data") dataPath
+
+--------------------------------------------------------------------------------
+
+anthyDictRule :: Rules ()
+anthyDictRule = do
+  "anthy.dic" %> \out -> do
+    anthySrc <- getCanonicalizedRootSrc "anthy-unicode"
+    cmd_ (Cwd anthySrc) "./autogen.sh"
+    cmd_ (Cwd anthySrc) "make"
+    copyFile' (anthySrc </> "mkanthydic" </> "anthy.dic") out
+  "anthy-dict" ~> do
+    copyFile' "anthy.dic" $ "anthy-dict" </> "anthy.dic"
 
 --------------------------------------------------------------------------------
 
