@@ -246,24 +246,18 @@ fmtRule = do
   buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- getCanonicalizedRootSrc "fmt"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    let toolchain = getCmakeToolchain env
-    withAndroidEnv env $ \cmake ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "fmt" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd fmtSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
+          (Cwd fmtSrc) cmake "-B" buildDir "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
             "-DANDROID_STL=c++_shared",
             "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
-            "-DCMAKE_CXX_FLAGS=-std=c++17",
             "-DFMT_TEST=OFF",
             "-DFMT_DOC=OFF"
           ]
@@ -286,7 +280,6 @@ libeventRule = do
   buildLibevent <- addOracle $ \(WithAndroidEnv Libevent env@AndroidEnv {..}) -> do
     libeventSrc <- getCanonicalizedRootSrc "libevent"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    let toolchain = getCmakeToolchain env
     -- make cmake generate relative _IMPORT_PREFIX
     cmd_ (Cwd libeventSrc) "sed -i 1456s|${CMAKE_INSTALL_PREFIX}/|| CMakeLists.txt"
     cmd_ (Cwd libeventSrc) "sed -i 1475{\\|\"${PROJECT_SOURCE_DIR}/include\"|d} CMakeLists.txt"
@@ -294,23 +287,18 @@ libeventRule = do
     -- fix LibeventConfig.cmake find_{path,library} calls in ndk toolchain
     cmd_ (Cwd libeventSrc) Shell "sed -i '120s|NO_DEFAULT_PATH)|NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)|' cmake/LibeventConfig.cmake.in"
     cmd_ (Cwd libeventSrc) Shell "sed -i '134s|NO_DEFAULT_PATH)|NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)|' cmake/LibeventConfig.cmake.in"
-    withAndroidEnv env $ \cmake ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libevent" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd libeventSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
+          (Cwd libeventSrc) cmake "-B" buildDir "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
             "-DANDROID_STL=c++_shared",
             "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
-            "-DCMAKE_BUILD_TYPE=Release",
             "-DEVENT__LIBRARY_TYPE=STATIC",
             "-DEVENT__DISABLE_DEBUG_MODE=ON",
             "-DEVENT__DISABLE_THREAD_SUPPORT=ON",
@@ -341,17 +329,12 @@ libintlLiteRule = do
   buildLibintlLite <- addOracle $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
     libintlSrc <- getCanonicalizedRootSrc "libintl-lite"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    let toolchain = getCmakeToolchain env
-    withAndroidEnv env $ \cmake ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libintl-lite" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd libintlSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
+          (Cwd libintlSrc) cmake "-B" buildDir "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
@@ -379,25 +362,24 @@ luaRule = do
   buildLua <- addOracle $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
     luaSrc <- getCanonicalizedRootSrc "Lua"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    let toolchain = getCmakeToolchain env
-    withAndroidEnv env $ \cmake ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "lua" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd luaSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
+          (Cwd luaSrc) cmake "-B" buildDir "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show platform,
             "-DANDROID_STL=c++_shared",
             "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
             "-DLUA_BUILD_BINARY=OFF",
-            "-DLUA_BUILD_COMPILER=OFF"
+            "-DLUA_BUILD_COMPILER=OFF",
+            "-DLUA_ENABLE_SHARED=OFF",
+            "-DLUA_ENABLE_TESTING=OFF",
+            "-DLUA_SUPPORT_DL=ON"
           ]
         cmd_ (Cwd luaSrc) cmake "--build" buildDir
         cmd_ (Cwd luaSrc) cmake "--install" buildDir
@@ -418,20 +400,15 @@ openccRule = do
   buildOpenCC <- addOracleCache $ \(WithAndroidEnv OpenCC env@AndroidEnv {..}) -> do
     openccSrc <- getCanonicalizedRootSrc "OpenCC"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    let toolchain = getCmakeToolchain env
     -- remove absolute path by __FILE__ macro
     --cmd_ (Cwd openccSrc) Shell "sed -i 18{/^set_target_properties/i target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\n} deps/marisa-0.2.6/CMakeLists.txt"
     cmd_ (Cwd openccSrc) Shell "sed -i '18s|\\(^set_target_properties.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' deps/marisa-0.2.6/CMakeLists.txt"
-    withAndroidEnv env $ \cmake ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "opencc" </> a
         let buildDir = "build-" <> a
         cmd_
-          (Cwd openccSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
+          (Cwd openccSrc) cmake "-B" buildDir "-GNinja"
           [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
@@ -498,8 +475,8 @@ getABIList AndroidEnv {..} = split (== ',') abi
 getCmakeToolchain :: AndroidEnv -> FilePath
 getCmakeToolchain AndroidEnv {..} = ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake"
 
-withAndroidEnv :: AndroidEnv -> (FilePath -> FilePath -> [String] -> Action a) -> Action a
-withAndroidEnv env f = f (getSdkCmake env) (getSdkNinja env) (getABIList env)
+withAndroidEnv :: AndroidEnv -> (FilePath -> FilePath -> FilePath -> [String] -> Action a) -> Action a
+withAndroidEnv env f = f (getSdkCmake env) (getCmakeToolchain env) (getSdkNinja env) (getABIList env)
 
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = do
