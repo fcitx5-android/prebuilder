@@ -13,9 +13,14 @@ module Main where
 
 import Control.Monad (forM_, void)
 import Control.Monad.Extra (fromMaybeM, whenM)
+import Data.Aeson qualified as A
+import Data.Aeson.Encode.Pretty qualified as A
+import Data.Aeson.Key qualified as A
 import Data.ByteString.Char8 qualified as BS
-import Data.List.Extra (find, replace, split)
+import Data.List.Extra (dropWhileEnd, find, isPrefixOf, replace, split)
 import Data.Maybe (fromJust)
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TLB
 import Development.Shake
 import Development.Shake.Classes
 import Development.Shake.Config
@@ -63,9 +68,41 @@ main = do
             ]
       need artifacts
       writeFileLines "artifacts.txt" artifacts
+      getToolchainVersions >>= writeFile' "toolchain-versions.json" . TL.unpack . TLB.toLazyText . A.encodePrettyToTextBuilder
 
 fcitxDataUrl :: String
 fcitxDataUrl = "https://download.fcitx-im.org/data/"
+
+--------------------------------------------------------------------------------
+
+data ToolchainVersions = ToolchainVersions
+  { prebuilderRev :: String,
+    ndkVersion :: String,
+    platformVersion :: Int,
+    cmakeVersion :: String
+  }
+
+instance A.ToJSON ToolchainVersions where
+  toJSON ToolchainVersions {..} =
+    A.object
+      [ A.fromString "prebuilder" A..= prebuilderRev,
+        A.fromString "ndk" A..= ndkVersion,
+        A.fromString "platform" A..= platformVersion,
+        A.fromString "cmake" A..= cmakeVersion
+      ]
+
+getToolchainVersions :: Action ToolchainVersions
+getToolchainVersions = do
+  StdoutTrim prebuilderRev <- cmd "git" "rev-parse" "HEAD"
+  AndroidEnv {sdkCmakeVersion = cmakeVersion, platform = platformVersion, ..} <- getAndroidEnv
+  properties <- readFileLines $ ndkRoot </> "source.properties"
+  ndkVersion <- case find ("Pkg.Revision" `isPrefixOf`) properties of
+    Just line
+      | [_, ndkVersion] <- split (== '=') line ->
+        pure $ dropWhileEnd (== ' ') ndkVersion
+      | otherwise -> fail "Failed to parse Pkg.Revision"
+    Nothing -> fail "Pkg.Revision not found in source.properties"
+  pure ToolchainVersions {..}
 
 --------------------------------------------------------------------------------
 
@@ -553,14 +590,14 @@ mainPathRule = void $
 
 getMainPath :: HasCallStack => IO FilePath
 getMainPath =
-  withFrozenCallStack
-    $ canonicalizePath
+  withFrozenCallStack $
+    canonicalizePath
       . srcLocFile
       . snd
       . fromJust
       . find ((== "getMainPath") . fst)
       . getCallStack
-    $ callStack
+      $ callStack
 
 --------------------------------------------------------------------------------
 
@@ -584,7 +621,7 @@ downloadFileRule = addBuiltinRule noLint noIdentity $ \DownloadFile {..} mOld mo
         now == downloadSha256,
         Just (BS.unpack -> old) <- mOld,
         old == now -> do
-          pure $ RunResult ChangedNothing (BS.pack now) ()
+        pure $ RunResult ChangedNothing (BS.pack now) ()
     _ -> do
       let url = downloadBaseUrl <> downloadFileName
       cmd_ "curl" "-LO" url
