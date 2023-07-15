@@ -64,7 +64,8 @@ main = do
               "lua",
               "opencc",
               "boost",
-              "anthy-dict"
+              "anthy-dict",
+              "toolchain-versions.json"
             ]
       need artifacts
       writeFileLines "artifacts.txt" artifacts
