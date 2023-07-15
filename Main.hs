@@ -64,11 +64,10 @@ main = do
               "lua",
               "opencc",
               "boost",
-              "anthy-dict",
-              "toolchain-versions.json"
+              "anthy-dict"
             ]
       need artifacts
-      writeFileLines "artifacts.txt" artifacts
+      writeFileLines "artifacts.txt" (["toolchain-versions.json"] ++ [artifacts])
       getToolchainVersions >>= writeFile' "toolchain-versions.json" . TL.unpack . TLB.toLazyText . A.encodePrettyToTextBuilder
 
 fcitxDataUrl :: String
