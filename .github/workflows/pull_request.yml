@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     env:
-      ABI: "armeabi-v7a,`arm64-v8a,x86,x86_64"
+      ABI: "armeabi-v7a,arm64-v8a,x86,x86_64"
       NDK_VERSION: "25.2.9519653"
       CMAKE_VERSION: "3.22.1"
       ANDROID_PLATFORM: "23"
