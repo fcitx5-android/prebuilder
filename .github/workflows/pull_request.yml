@@ -44,7 +44,10 @@ jobs:
         run: |
           cd build
           mkdir prebuilt
-          for file in $(<artifacts.txt); do cp -a "$file" prebuilt/; done
+          for file in $(<artifacts.txt)
+          do
+            cp -a "$file" prebuilt/
+          done
           tar --zstd -cf prebuilt.tar.zst prebuilt/
 
       - name: Upload prebuilt
