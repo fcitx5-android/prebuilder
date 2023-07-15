@@ -17,14 +17,15 @@ jobs:
     steps:
       - name: Install build dependencies
         run: |
-          pacman -Syu --needed --noconfirm ghc git unzip haskell-shake haskell-aeson libime opencc jdk17-openjdk python
+          pacman -Syu --needed --noconfirm ghc git unzip haskell-shake haskell-aeson-pretty libime opencc jdk17-openjdk python
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
       - name: Install NDK and CMake
-        run: sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
-          sdkmanager --install "cmake;${{ env.cmake_version }}"
+        run: |
+          sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
+          sdkmanager --install "cmake;${{ env.CMAKE_VERSION }}"
 
       - name: Fetch source code
         uses: actions/checkout@v3
@@ -39,14 +40,24 @@ jobs:
           mkdir build && cd build
           runghc ../Main.hs -j everything
 
-      - name: Move libraries to prebuilt and compress
-        run: |
-          cd build
-          mkdir prebuilt
-          for file in $(<artifacts.txt); do cp -a "$file" prebuilt/; done
-          tar --zstd -cf prebuilt.tar.zst prebuilt/
-
-      - name: Upload prebuilt
-        uses: actions/upload-artifact@v3
+      - name: Fetch prebuilt
+        uses: actions/checkout@v3
         with:
-          path: build/prebuilt.tar.zst
+          path: prebuilt
+          repository: fcitx5-android/prebuilt
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Push to prebuilt
+        working-directory: prebuilt
+        run: |
+          for file in $(<../build/artifacts.txt)
+          do
+            rm -rf "$file"
+            cp -a "../build/$file" ./
+          done
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Auto update"
+          git push --set-upstream origin "HEAD:master" --follow-tags --atomic
