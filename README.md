@@ -4,9 +4,13 @@ Build static libraries for [fcitx5-android](https://github.com/fcitx5-android/fc
 
 ## Build environment
 
-* NDK Vesion: `25.0.8775105`
+* NDK Vesion: `25.2.9519653`
 * CMake Version: `3.22.1`
 * Android Platform (API Level): `23`
+* `bash tar unzip curl git python ghc haskell-shake haskell-aeson-pretty`
+* `fcitx5` (`fcitx5-modules` on Debian): for `comp-spell-dict`
+* `libime` (`libime-bin` on Debian) >= 1.0.5 : for various `libime_*` tools
+* `opencc`: for `opencc_dict`
 
 ## Libraries
 
