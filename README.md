@@ -22,3 +22,4 @@ Build static libraries for [fcitx5-android](https://github.com/fcitx5-android/fc
 * lua: [walterschell/LuaCMake](https://github.com/walterschell/Lua)
 * opencc: [BYVoid/OpenCC](https://github.com/BYVoid/OpenCC)
 * spell-dict data: [fcitx/fcitx5](https://github.com/fcitx/fcitx5/blob/master/src/modules/spell/dict)
+* anthy dict: [fujiwarat/anthy-unicode](https://github.com/fujiwarat/anthy-unicode)
