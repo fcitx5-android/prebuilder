@@ -37,6 +37,7 @@ jobs:
           LANG: "C.UTF-8"
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
         run: |
+          git config --system --add safe.directory ${{ github.workspace }}
           mkdir build && cd build
           runghc ../Main.hs -j everything
 
