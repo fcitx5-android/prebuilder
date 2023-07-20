@@ -28,7 +28,8 @@
           libime
           opencc
           haskell-language-server
-          (haskellPackages.ghcWithPackages (pkgs: with pkgs; [ shake ]))
+          (haskellPackages.ghcWithPackages
+            (pkgs: with pkgs; [ shake aeson-pretty ]))
           autoconf
           automake
           pkg-config
@@ -49,10 +50,10 @@
       overlays.default = final: prev: {
         fcitx5-android-sdk = rec {
           cmakeVersion = "3.22.1";
-          buildToolsVersion = "33.0.0";
+          buildToolsVersion = "33.0.2";
           platformToolsVersion = "33.0.3";
           platformVersion = "33";
-          ndkVersion = "25.0.8775105";
+          ndkVersion = "25.2.9519653";
           abiVersions = [ "arm64-v8a" ];
           androidComposition = prev.androidenv.composeAndroidPackages {
             inherit platformToolsVersion ndkVersion;
