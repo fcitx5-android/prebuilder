@@ -1,30 +1,38 @@
 {
   description = "Dev shell flake for fcitx5-android prebuilder";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.fcitx5-android.url = "github:fcitx5-android/fcitx5-android";
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
   };
 
-  outputs = { self, nixpkgs, ... }:
+  outputs = { self, fcitx5-android, ... }:
     let
+      nixpkgs = fcitx5-android.inputs.nixpkgs;
       pkgs = import nixpkgs {
         system = "x86_64-linux";
         config.android_sdk.accept_license = true;
         config.allowUnfree = true;
-        overlays = [ self.overlays.default ];
+        overlays = [ fcitx5-android.overlays.default ];
       };
     in with pkgs;
-    with fcitx5-android-sdk;
-    {
-      devShells.x86_64-linux.default = mkShell rec {
-        buildInputs = [
-          androidComposition.androidsdk
-          extra-cmake-modules
-          gettext
-          python39
-          icu
+    let sdk = pkgs.fcitx5-android.sdk;
+    in {
+      devShells.x86_64-linux.default = (sdk.shell.override {
+        androidStudio = null;
+        generateLocalProperties = false;
+      }).overrideAttrs (old: {
+        ABI = "armeabi-v7a,arm64-v8a,x86,x86_64";
+        ANDROID_PLATFORM = sdk.platformVersion;
+        CMAKE_VERSION = sdk.cmakeVersion;
+        shellHook = ''
+          ${old.shellHook}
+          export ANDROID_NDK_ROOT="$ANDROID_SDK_ROOT/ndk/${sdk.ndkVersion}"
+          export COMP_SPELL_DICT="${fcitx5}/lib/fcitx5/libexec/comp-spell-dict"
+        '';
+        buildInputs = old.buildInputs ++ [
+          fcitx5
           libime
           opencc
           haskell-language-server
@@ -35,36 +43,6 @@
           pkg-config
           libtool
         ];
-        ANDROID_SDK_ROOT =
-          "${androidComposition.androidsdk}/libexec/android-sdk";
-        ANDROID_NDK_ROOT = "${ANDROID_SDK_ROOT}/ndk/${ndkVersion}";
-        CMAKE_VERSION = cmakeVersion;
-        ABI = lib.head abiVersions;
-        ANDROID_PLATFORM = platformVersion;
-        JAVA_HOME = "${jdk11}";
-        shellHook = ''
-          export PATH="$ANDROID_SDK_ROOT/cmake/${cmakeVersion}/bin:$PATH"
-        '';
-      };
-    } // {
-      overlays.default = final: prev: {
-        fcitx5-android-sdk = rec {
-          cmakeVersion = "3.22.1";
-          buildToolsVersion = "33.0.2";
-          platformToolsVersion = "33.0.3";
-          platformVersion = "33";
-          ndkVersion = "25.2.9519653";
-          abiVersions = [ "arm64-v8a" ];
-          androidComposition = prev.androidenv.composeAndroidPackages {
-            inherit platformToolsVersion ndkVersion;
-            buildToolsVersions = [ buildToolsVersion ];
-            platformVersions = [ platformVersion ];
-            inherit abiVersions;
-            cmakeVersions = [ cmakeVersion ];
-            includeNDK = true;
-            includeEmulator = false;
-          };
-        };
-      };
+      });
     };
 }
