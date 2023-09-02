@@ -17,7 +17,14 @@
         overlays = [ fcitx5-android.overlays.default ];
       };
     in with pkgs;
-    let sdk = pkgs.fcitx5-android.sdk;
+    let
+      sdk = pkgs.fcitx5-android.sdk;
+      prebuilder = haskellPackages.callPackage ./nix { };
+      prebuilderShell = (haskell.lib.addBuildTools prebuilder [
+        haskell-language-server
+        cabal2nix
+        cabal-install
+      ]).env;
     in {
       devShells.x86_64-linux.default = (sdk.shell.override {
         androidStudio = null;
@@ -31,18 +38,16 @@
           export ANDROID_NDK_ROOT="$ANDROID_SDK_ROOT/ndk/${sdk.ndkVersion}"
           export COMP_SPELL_DICT="${fcitx5}/lib/fcitx5/libexec/comp-spell-dict"
         '';
-        buildInputs = old.buildInputs ++ [
-          fcitx5
-          libime
-          opencc
-          haskell-language-server
-          (haskellPackages.ghcWithPackages
-            (pkgs: with pkgs; [ shake aeson-pretty ]))
-          autoconf
-          automake
-          pkg-config
-          libtool
-        ];
+
+        buildInputs = old.buildInputs
+          ++ [ fcitx5 libime opencc autoconf automake pkg-config libtool ]
+          ++ prebuilderShell.buildInputs;
+
+        nativeBuildInputs = old.nativeBuildInputs
+          ++ prebuilderShell.nativeBuildInputs;
+
       });
+      packages.x86_64-linux.default =
+        haskell.lib.justStaticExecutables prebuilder;
     };
 }
