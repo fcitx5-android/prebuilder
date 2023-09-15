@@ -259,7 +259,7 @@ boostRule = do
     let abiList = getABIList env
         firstAbi = head abiList
     -- magic dependency
-    _ <- buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex") env
+    _ <- buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex,system") env
     getDirectoryFiles
       ("build" </> "out" </> firstAbi </> "include" </> "boost")
       ["//*"]
