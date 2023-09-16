@@ -24,4 +24,4 @@
 	ignore = untracked
 [submodule "anthy-unicode"]
 	path = anthy-unicode
-	url = git@github.com:fujiwarat/anthy-unicode.git
+	url = https://github.com/fujiwarat/anthy-unicode
