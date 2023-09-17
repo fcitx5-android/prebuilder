@@ -53,6 +53,7 @@ main = do
     openccRule
     boostRule
     glogRule
+    yamlCppRule
     anthyDictRule
     "everything" ~> do
       let artifacts =
@@ -66,6 +67,7 @@ main = do
               "opencc",
               "boost",
               "glog",
+              "yaml-cpp",
               "anthy-dict"
             ]
       need artifacts
@@ -557,6 +559,48 @@ glogRule = do
   "glog" ~> do
     env <- getAndroidEnv
     buildGlog $ WithAndroidEnv Glog env
+
+--------------------------------------------------------------------------------
+
+data YamlCpp = YamlCpp
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult YamlCpp = ()
+
+yamlCppRule :: Rules ()
+yamlCppRule = do
+  buildYamlCpp <- addOracle $ \(WithAndroidEnv YamlCpp env@AndroidEnv {..}) -> do
+    yamlcppSrc <- getCanonicalizedRootSrc "yaml-cpp"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "yaml-cpp" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd yamlcppSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DYAML_CPP_BUILD_CONTRIB=OFF",
+            "-DYAML_CPP_BUILD_TESTS=OFF",
+            "-DYAML_CPP_BUILD_TOOLS=OFF"
+          ]
+        cmd_ (Cwd yamlcppSrc) cmake "--build" buildDir
+        cmd_ (Cwd yamlcppSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["lib/pkgconfig"]
+  "yaml-cpp" ~> do
+    env <- getAndroidEnv
+    buildYamlCpp $ WithAndroidEnv YamlCpp env
 
 --------------------------------------------------------------------------------
 
