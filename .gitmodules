@@ -31,3 +31,6 @@
 [submodule "yaml-cpp"]
 	path = yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
+[submodule "leveldb"]
+	path = leveldb
+	url = https://github.com/google/leveldb

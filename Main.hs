@@ -54,6 +54,7 @@ main = do
     boostRule
     glogRule
     yamlCppRule
+    leveldbRule
     anthyDictRule
     "everything" ~> do
       let artifacts =
@@ -68,6 +69,7 @@ main = do
               "boost",
               "glog",
               "yaml-cpp",
+              "leveldb",
               "anthy-dict"
             ]
       need artifacts
@@ -601,6 +603,47 @@ yamlCppRule = do
   "yaml-cpp" ~> do
     env <- getAndroidEnv
     buildYamlCpp $ WithAndroidEnv YamlCpp env
+
+--------------------------------------------------------------------------------
+
+data LevelDB = LevelDB
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult LevelDB = ()
+
+leveldbRule :: Rules ()
+leveldbRule = do
+  buildLevelDB <- addOracle $ \(WithAndroidEnv LevelDB env@AndroidEnv {..}) -> do
+    leveldbSrc <- getCanonicalizedRootSrc "leveldb"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "leveldb" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd leveldbSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DLEVELDB_BUILD_BENCHMARKS=OFF",
+            "-DLEVELDB_BUILD_TESTS=OFF"
+          ]
+        cmd_ (Cwd leveldbSrc) cmake "--build" buildDir
+        cmd_ (Cwd leveldbSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["lib/pkgconfig"]
+  "leveldb" ~> do
+    env <- getAndroidEnv
+    buildLevelDB $ WithAndroidEnv LevelDB env
 
 --------------------------------------------------------------------------------
 
