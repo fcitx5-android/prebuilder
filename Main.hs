@@ -56,6 +56,7 @@ main = do
     yamlCppRule
     leveldbRule
     marisaRule
+    librimeRule
     anthyDictRule
     "everything" ~> do
       let artifacts =
@@ -72,6 +73,7 @@ main = do
               "yaml-cpp",
               "leveldb",
               "marisa",
+              "librime",
               "anthy-dict"
             ]
       need artifacts
@@ -686,6 +688,58 @@ marisaRule = do
   "marisa" ~> do
     env <- getAndroidEnv
     buildMarisa $ WithAndroidEnv Marisa env
+
+--------------------------------------------------------------------------------
+
+data Librime = Librime
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult Librime = ()
+
+librimeRule :: Rules ()
+librimeRule = do
+  buildLibrime <- addOracle $ \(WithAndroidEnv Librime env@AndroidEnv {..}) -> do
+    librimeSrc <- getCanonicalizedRootSrc "librime"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    -- remove absolute path by __FILE__ macro
+    cmd_ (Cwd librimeSrc) Shell "sed -i '143s|\\(^.*target_link_libraries.*\\)|target_compile_options\\(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' src/CMakeLists.txt"
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "librime" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd librimeSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_FIND_ROOT_PATH=" <> out </> "boost" </> a <> ";" <> out </> "glog" </> a <> ";" <> out </> "yaml-cpp" </> a <> ";" <> out </> "leveldb" </> a <> ";" <> out </> "marisa" </> a <> ";" <> out </> "opencc" </> a <> ";" <> librimeSrc,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DBUILD_STATIC=ON",
+            "-DBUILD_TEST=OFF",
+            "-DCMAKE_CXX_FLAGS=-DBOOST_DISABLE_CURRENT_LOCATION"
+          ]
+        cmd_ (Cwd librimeSrc) cmake "--build" buildDir
+        cmd_ (Cwd librimeSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["lib/pkgconfig"]
+  "librime" ~> do
+    need [ "opencc",
+           "boost",
+           "glog",
+           "yaml-cpp",
+           "leveldb",
+           "marisa"
+         ]
+    env <- getAndroidEnv
+    buildLibrime $ WithAndroidEnv Librime env
 
 --------------------------------------------------------------------------------
 
