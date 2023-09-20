@@ -34,3 +34,6 @@
 [submodule "leveldb"]
 	path = leveldb
 	url = https://github.com/google/leveldb
+[submodule "marisa-trie"]
+	path = marisa-trie
+	url = https://github.com/rime/marisa-trie

@@ -55,6 +55,7 @@ main = do
     glogRule
     yamlCppRule
     leveldbRule
+    marisaRule
     anthyDictRule
     "everything" ~> do
       let artifacts =
@@ -70,6 +71,7 @@ main = do
               "glog",
               "yaml-cpp",
               "leveldb",
+              "marisa",
               "anthy-dict"
             ]
       need artifacts
@@ -644,6 +646,45 @@ leveldbRule = do
   "leveldb" ~> do
     env <- getAndroidEnv
     buildLevelDB $ WithAndroidEnv LevelDB env
+
+--------------------------------------------------------------------------------
+
+data Marisa = Marisa
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult Marisa = ()
+
+marisaRule :: Rules ()
+marisaRule = do
+  buildMarisa <- addOracle $ \(WithAndroidEnv Marisa env@AndroidEnv {..}) -> do
+    marisaSrc <- getCanonicalizedRootSrc "marisa-trie"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    cmd_ (Cwd marisaSrc) Shell "sed -i '42s|\\(^install.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "marisa" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd marisaSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF"
+          ]
+        cmd_ (Cwd marisaSrc) cmake "--build" buildDir
+        cmd_ (Cwd marisaSrc) cmake "--install" buildDir
+  "marisa" ~> do
+    env <- getAndroidEnv
+    buildMarisa $ WithAndroidEnv Marisa env
 
 --------------------------------------------------------------------------------
 
