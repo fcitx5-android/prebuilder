@@ -465,9 +465,8 @@ openccRule = do
   buildOpenCC <- addOracleCache $ \(WithAndroidEnv OpenCC env@AndroidEnv {..}) -> do
     openccSrc <- getCanonicalizedRootSrc "OpenCC"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    -- remove absolute path by __FILE__ macro
-    -- cmd_ (Cwd openccSrc) Shell "sed -i 18{/^set_target_properties/i target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\n} deps/marisa-0.2.6/CMakeLists.txt"
-    cmd_ (Cwd openccSrc) Shell "sed -i '18s|\\(^set_target_properties.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' deps/marisa-0.2.6/CMakeLists.txt"
+    -- use prebuilt marisa
+    cmd_ (Cwd openccSrc) Shell "sed -i '213s|find_library(LIBMARISA NAMES marisa)|find_package(marisa)\\nset(LIBMARISA marisa)|' CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "opencc" </> a
@@ -495,7 +494,8 @@ openccRule = do
             "-DENABLE_GTEST=OFF",
             "-DENABLE_BENCHMARK=OFF",
             "-DENABLE_DARTS=OFF",
-            "-DUSE_SYSTEM_MARISA=OFF",
+            "-DUSE_SYSTEM_MARISA=ON",
+            "-Dmarisa_DIR=" <> (out </> "marisa" </> a </> "lib" </> "cmake" </> "marisa"),
             "-DUSE_SYSTEM_PYBIND11=OFF",
             "-DUSE_SYSTEM_RAPIDJSON=OFF",
             "-DUSE_SYSTEM_TCLAP=OFF"
@@ -504,6 +504,7 @@ openccRule = do
         cmd_ (Cwd openccSrc) cmake "--install" buildDir
         removeFilesAfter outPrefix ["bin", "lib/pkgconfig"]
   "opencc" ~> do
+    need [ "marisa" ]
     env <- getAndroidEnv
     -- since dictionary files are the same regardless of abi
     -- we take a random one
