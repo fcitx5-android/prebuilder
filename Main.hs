@@ -52,6 +52,10 @@ main = do
     luaRule
     openccRule
     boostRule
+    glogRule
+    yamlCppRule
+    leveldbRule
+    marisaRule
     anthyDictRule
     "everything" ~> do
       let artifacts =
@@ -64,6 +68,10 @@ main = do
               "lua",
               "opencc",
               "boost",
+              "glog",
+              "yaml-cpp",
+              "leveldb",
+              "marisa",
               "anthy-dict"
             ]
       need artifacts
@@ -457,9 +465,8 @@ openccRule = do
   buildOpenCC <- addOracleCache $ \(WithAndroidEnv OpenCC env@AndroidEnv {..}) -> do
     openccSrc <- getCanonicalizedRootSrc "OpenCC"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    -- remove absolute path by __FILE__ macro
-    -- cmd_ (Cwd openccSrc) Shell "sed -i 18{/^set_target_properties/i target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\n} deps/marisa-0.2.6/CMakeLists.txt"
-    cmd_ (Cwd openccSrc) Shell "sed -i '18s|\\(^set_target_properties.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' deps/marisa-0.2.6/CMakeLists.txt"
+    -- use prebuilt marisa
+    cmd_ (Cwd openccSrc) Shell "sed -i '213s|find_library(LIBMARISA NAMES marisa)|find_package(marisa)\\nset(LIBMARISA marisa)|' CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "opencc" </> a
@@ -487,7 +494,8 @@ openccRule = do
             "-DENABLE_GTEST=OFF",
             "-DENABLE_BENCHMARK=OFF",
             "-DENABLE_DARTS=OFF",
-            "-DUSE_SYSTEM_MARISA=OFF",
+            "-DUSE_SYSTEM_MARISA=ON",
+            "-Dmarisa_DIR=" <> (out </> "marisa" </> a </> "lib" </> "cmake" </> "marisa"),
             "-DUSE_SYSTEM_PYBIND11=OFF",
             "-DUSE_SYSTEM_RAPIDJSON=OFF",
             "-DUSE_SYSTEM_TCLAP=OFF"
@@ -496,6 +504,7 @@ openccRule = do
         cmd_ (Cwd openccSrc) cmake "--install" buildDir
         removeFilesAfter outPrefix ["bin", "lib/pkgconfig"]
   "opencc" ~> do
+    need [ "marisa" ]
     env <- getAndroidEnv
     -- since dictionary files are the same regardless of abi
     -- we take a random one
@@ -511,6 +520,172 @@ openccRule = do
       let dataPath = "opencc" </> a </> "share" </> "opencc"
       liftIO $ whenM (doesPathExist dataPath) $ removePathForcibly dataPath
       liftIO $ createDirectoryLink (".." </> ".." </> "data") dataPath
+
+--------------------------------------------------------------------------------
+
+data Glog = Glog
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult Glog = ()
+
+glogRule :: Rules ()
+glogRule = do
+  buildGlog <- addOracle $ \(WithAndroidEnv Glog env@AndroidEnv {..}) -> do
+    glogSrc <- getCanonicalizedRootSrc "glog"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    -- remove absolute path by __FILE__ macro
+    cmd_ (Cwd glogSrc) Shell "sed -i '618s|\\(^add_library (glog.*\\)|target_compile_options\\(glogbase PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "glog" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd glogSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DWITH_GFLAGS=OFF",
+            "-DWITH_UNWIND=OFF",
+            "-DBUILD_TESTING=OFF"
+          ]
+        cmd_ (Cwd glogSrc) cmake "--build" buildDir
+        cmd_ (Cwd glogSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["lib/pkgconfig"]
+  "glog" ~> do
+    env <- getAndroidEnv
+    buildGlog $ WithAndroidEnv Glog env
+
+--------------------------------------------------------------------------------
+
+data YamlCpp = YamlCpp
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult YamlCpp = ()
+
+yamlCppRule :: Rules ()
+yamlCppRule = do
+  buildYamlCpp <- addOracle $ \(WithAndroidEnv YamlCpp env@AndroidEnv {..}) -> do
+    yamlcppSrc <- getCanonicalizedRootSrc "yaml-cpp"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "yaml-cpp" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd yamlcppSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DYAML_CPP_BUILD_CONTRIB=OFF",
+            "-DYAML_CPP_BUILD_TESTS=OFF",
+            "-DYAML_CPP_BUILD_TOOLS=OFF"
+          ]
+        cmd_ (Cwd yamlcppSrc) cmake "--build" buildDir
+        cmd_ (Cwd yamlcppSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["lib/pkgconfig"]
+  "yaml-cpp" ~> do
+    env <- getAndroidEnv
+    buildYamlCpp $ WithAndroidEnv YamlCpp env
+
+--------------------------------------------------------------------------------
+
+data LevelDB = LevelDB
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult LevelDB = ()
+
+leveldbRule :: Rules ()
+leveldbRule = do
+  buildLevelDB <- addOracle $ \(WithAndroidEnv LevelDB env@AndroidEnv {..}) -> do
+    leveldbSrc <- getCanonicalizedRootSrc "leveldb"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "leveldb" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd leveldbSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DLEVELDB_BUILD_BENCHMARKS=OFF",
+            "-DLEVELDB_BUILD_TESTS=OFF"
+          ]
+        cmd_ (Cwd leveldbSrc) cmake "--build" buildDir
+        cmd_ (Cwd leveldbSrc) cmake "--install" buildDir
+        removeFilesAfter outPrefix ["lib/pkgconfig"]
+  "leveldb" ~> do
+    env <- getAndroidEnv
+    buildLevelDB $ WithAndroidEnv LevelDB env
+
+--------------------------------------------------------------------------------
+
+data Marisa = Marisa
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
+
+type instance RuleResult Marisa = ()
+
+marisaRule :: Rules ()
+marisaRule = do
+  buildMarisa <- addOracle $ \(WithAndroidEnv Marisa env@AndroidEnv {..}) -> do
+    marisaSrc <- getCanonicalizedRootSrc "marisa-trie"
+    out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    cmd_ (Cwd marisaSrc) Shell "sed -i '42s|\\(^install.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
+    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "marisa" </> a
+        let buildDir = "build-" <> a
+        cmd_
+          (Cwd marisaSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF"
+          ]
+        cmd_ (Cwd marisaSrc) cmake "--build" buildDir
+        cmd_ (Cwd marisaSrc) cmake "--install" buildDir
+  "marisa" ~> do
+    env <- getAndroidEnv
+    buildMarisa $ WithAndroidEnv Marisa env
 
 --------------------------------------------------------------------------------
 
