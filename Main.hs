@@ -702,6 +702,10 @@ librimeRule = do
   buildLibrime <- addOracle $ \(WithAndroidEnv Librime env@AndroidEnv {..}) -> do
     librimeSrc <- getCanonicalizedRootSrc "librime"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
+    cmd_ (Cwd (librimeSrc </> "plugins")) Shell "ls lua || ln -s ../../librime-lua lua"
+    cmd_ (Cwd (librimeSrc </> "plugins" </> "lua")) Shell "sed -i '11s|^\\s*if(LUA_FOUND)|set(LUA_FOUND 1)\\nset(LUA_INCLUDE_DIRS \"${CMAKE_CURRENT_SOURCE_DIR}/../build/lua/${ANDROID_ABI}/include\")\\n\\0|' CMakeLists.txt"
+    cmd_ (Cwd (librimeSrc </> "plugins")) Shell "ls octagram || ln -s ../../librime-octagram octagram"
+    cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i '18s|^add_subdirectory.*||' CMakeLists.txt"
     -- remove absolute path by __FILE__ macro
     cmd_ (Cwd librimeSrc) Shell "sed -i '143s|\\(^.*target_link_libraries.*\\)|target_compile_options\\(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' src/CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja abiList ->
