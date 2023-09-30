@@ -73,10 +73,10 @@ main = do
                 "anthy-dict"
               ]
         need artifacts
-        writeFileLines "artifacts.txt" ("toolchain-versions.json" : artifacts)
-        getToolchainVersions >>= writeFile' "toolchain-versions.json" . TL.unpack . TLB.toLazyText . A.encodePrettyToTextBuilder
+        writeFileLines (outputDir </> "artifacts.txt") ("toolchain-versions.json" : artifacts)
+        getToolchainVersions >>= writeFile' (outputDir </> "toolchain-versions.json") . TL.unpack . TLB.toLazyText . A.encodePrettyToTextBuilder
       "clean" ~> do
-        removeFilesAfter "_build" ["//*"]
+        removeFilesAfter outputDir ["//*"]
         cmd_ "git" "submodule" "foreach" "--recursive" "git" "reset" "--hard"
         cmd_ "git" "submodule" "foreach" "--recursive" "git" "clean" "-x" "-f" "-d"
 

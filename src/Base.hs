@@ -48,14 +48,12 @@ import System.Directory.Extra
     removePathForcibly,
   )
 import qualified System.Directory.Extra as IO
-import System.IO.Unsafe (unsafePerformIO)
 
 prebuilderVersion :: String
 prebuilderVersion = "3"
 
-{-# NOINLINE outputDir #-}
 outputDir :: FilePath
-outputDir = unsafePerformIO $ canonicalizePath "_build"
+outputDir = "build"
 
 --------------------------------------------------------------------------------
 
@@ -82,7 +80,7 @@ downloadFileRule = addBuiltinRule noLint noIdentity $ \DownloadFile {..} mOld mo
           pure $ RunResult ChangedNothing (BS.pack now) ()
     _ -> do
       let url = downloadBaseUrl <> downloadFileName
-      cmd_ "curl" "-LO" url
+      cmd_ (Cwd outputDir) "curl" "-LO" url
       sha256 <- sha256sum downloadFileName
       if sha256 /= downloadSha256
         then fail $ "SHA256 mismatched: expected " <> (if not $ null downloadSha256 then downloadSha256 else "[empty]") <> ", but got " <> sha256
@@ -90,11 +88,12 @@ downloadFileRule = addBuiltinRule noLint noIdentity $ \DownloadFile {..} mOld mo
 
 sha256sum :: FilePath -> Action String
 sha256sum file = do
-  (Stdout result) <- cmd "sha256sum" file
+  (Stdout result) <- cmd (Cwd outputDir) "sha256sum" file
   pure $ takeWhile (/= ' ') result
 
-download :: String -> FilePath -> String -> Action ()
-download downloadBaseUrl downloadFileName downloadSha256 = apply1 DownloadFile {..}
+-- | Download to @outputDir@.
+download :: String -> FilePath -> String -> Action FilePath
+download downloadBaseUrl downloadFileName downloadSha256 = outputDir </> downloadFileName <$ apply1 DownloadFile {..}
 
 --------------------------------------------------------------------------------
 

@@ -16,10 +16,10 @@ spellDictRule = do
   outputDir </> "en_dict.txt" %> \out -> do
     src <- getConfig' "en_dict"
     sha256 <- getConfig' "en_dict_sha256"
-    download fcitxDataUrl src sha256
-    cmd_ "tar" "xf" src out
+    tar <- download fcitxDataUrl src sha256
+    cmd_ "tar" "xf" tar "-C" outputDir (takeFileName out)
   outputDir </> "en_dict.fscd" %> \out -> do
-    let src = "en_dict.txt"
+    let src = outputDir </> "en_dict.txt"
     need [src]
     compSpellDict <- getEnvWithDefault "/usr/lib/fcitx5/libexec/comp-spell-dict" "COMP_SPELL_DICT"
     cmd_ compSpellDict "--comp-dict" [src, out]
@@ -53,8 +53,8 @@ lmRule = do
   outputDir </> "lm_sc.arpa" %> \out -> do
     src <- getConfig' "lm_sc"
     sha256 <- getConfig' "lm_sc_sha256"
-    download fcitxDataUrl src sha256
-    cmd_ "tar" "xf" src out
+    tar <- download fcitxDataUrl src sha256
+    cmd_ "tar" "xf" tar "-C" outputDir (takeFileName out)
   outputDir </> "sc.lm" %> \out -> do
     let src = outputDir </> "lm_sc.arpa"
     need [src]
@@ -70,8 +70,8 @@ dictRule = do
   (outputDir </>) . ("dict_" <>) . (<.> "txt") <$> dictNames |%> \out -> do
     src <- getConfig' "dict"
     sha256 <- getConfig' "dict_sha256"
-    download fcitxDataUrl src sha256
-    (Stdout txt) <- cmd "tar" "xf" src out
+    tar <- download fcitxDataUrl src sha256
+    (Stdout txt) <- cmd "tar" "xf" tar "-C" outputDir (takeFileName out)
     produces $ lines txt
   (outputDir </>) . (<.> "dict") <$> dictNames |%> \out -> do
     let src = outputDir </> "dict_" <> takeBaseName out <.> "txt"
@@ -83,8 +83,8 @@ tableDictRule = do
   (outputDir </>) . (<.> "txt") <$> tableDictNames |%> \out -> do
     src <- getConfig' "table"
     sha256 <- getConfig' "table_sha256"
-    download fcitxDataUrl src sha256
-    (Stdout txt) <- cmd "tar" "xf" src out
+    tar <- download fcitxDataUrl src sha256
+    (Stdout txt) <- cmd "tar" "xf" tar "-C" outputDir (takeFileName out)
     produces $ lines txt
   (outputDir </>) . (<.> "main.dict") <$> tableDictNames |%> \out -> do
     let src = outputDir </> fromJust (stripExtension "main.dict" $ takeFileName out) <.> "txt"
@@ -111,8 +111,8 @@ pinyinDictRule = do
           let src = name <.> "txt"
           chineseAddonsRepoDataUrl <- getConfig' "chinese_addon_repo"
           sha256 <- getConfig' $ name <> "_sha256"
-          download chineseAddonsRepoDataUrl src sha256
-          cmd_ "libime_pinyindict" src out
+          txt <- download chineseAddonsRepoDataUrl src sha256
+          cmd_ "libime_pinyindict" txt out
   dict "chaizi"
   dict "emoji"
 
@@ -121,13 +121,13 @@ pinyinStrokeRule = do
   outputDir </> "py_stroke.mb" %> \out -> do
     src <- getConfig' "py_stroke"
     sha256 <- getConfig' "py_stroke_sha256"
-    download fcitxDataUrl src sha256
-    cmd_ "tar" "xf" src out
+    tar <- download fcitxDataUrl src sha256
+    cmd_ "tar" "xf" tar "-C" outputDir (takeFileName out)
 
 pinyinTableRule :: Rules ()
 pinyinTableRule = do
   outputDir </> "py_table.mb" %> \out -> do
     src <- getConfig' "py_table"
     sha256 <- getConfig' "py_table_sha256"
-    download fcitxDataUrl src sha256
-    cmd_ "tar" "xf" src out
+    tar <- download fcitxDataUrl src sha256
+    cmd_ "tar" "xf" tar "-C" outputDir (takeFileName out)
