@@ -297,7 +297,7 @@ fmtRule = do
   buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     fmtSrc <- getCanonicalizedRootSrc "fmt"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "fmt" </> a
         let buildDir = "build-" <> a
@@ -318,6 +318,7 @@ fmtRule = do
           ]
         cmd_ (Cwd fmtSrc) cmake "--build" buildDir
         cmd_ (Cwd fmtSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libfmt.a"
         removeFilesAfter outPrefix ["lib/pkgconfig"]
   "fmt" ~> do
     env <- getAndroidEnv
@@ -342,7 +343,7 @@ libeventRule = do
     -- fix LibeventConfig.cmake find_{path,library} calls in ndk toolchain
     cmd_ (Cwd libeventSrc) Shell "sed -i '120s|NO_DEFAULT_PATH)|NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)|' cmake/LibeventConfig.cmake.in"
     cmd_ (Cwd libeventSrc) Shell "sed -i '134s|NO_DEFAULT_PATH)|NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)|' cmake/LibeventConfig.cmake.in"
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libevent" </> a
         let buildDir = "build-" <> a
@@ -371,6 +372,7 @@ libeventRule = do
         -- avoid void installing pkgconf files and python scripts
         cmd_ (Cwd libeventSrc) cmake "--install" buildDir "--component" "lib"
         cmd_ (Cwd libeventSrc) cmake "--install" buildDir "--component" "dev"
+        cmd_ (Cwd outPrefix) Shell strip "--strip-unneeded" "lib/libevent*.a"
   "libevent" ~> do
     env <- getAndroidEnv
     buildLibevent $ WithAndroidEnv Libevent env
@@ -388,7 +390,7 @@ libintlLiteRule = do
   buildLibintlLite <- addOracle $ \(WithAndroidEnv LibintlLite env@AndroidEnv {..}) -> do
     libintlSrc <- getCanonicalizedRootSrc "libintl-lite"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libintl-lite" </> a
         let buildDir = "build-" <> a
@@ -408,6 +410,7 @@ libintlLiteRule = do
           ]
         cmd_ (Cwd libintlSrc) cmake "--build" buildDir
         cmd_ (Cwd libintlSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libintl.a"
   "libintl-lite" ~> do
     env <- getAndroidEnv
     buildLibintlLite $ WithAndroidEnv LibintlLite env
@@ -425,7 +428,7 @@ luaRule = do
   buildLua <- addOracle $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
     luaSrc <- getCanonicalizedRootSrc "Lua"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "lua" </> a
         let buildDir = "build-" <> a
@@ -450,6 +453,7 @@ luaRule = do
           ]
         cmd_ (Cwd luaSrc) cmake "--build" buildDir
         cmd_ (Cwd luaSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/liblua_static.a"
   "lua" ~> do
     env <- getAndroidEnv
     buildLua $ WithAndroidEnv Lua env
@@ -469,7 +473,7 @@ openccRule = do
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     -- use prebuilt marisa
     cmd_ (Cwd openccSrc) Shell "sed -i '213s|find_library(LIBMARISA NAMES marisa)|find_package(marisa)\\nset(LIBMARISA marisa)|' CMakeLists.txt"
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "opencc" </> a
         let buildDir = "build-" <> a
@@ -504,6 +508,7 @@ openccRule = do
           ]
         cmd_ (Cwd openccSrc) cmake "--build" buildDir
         cmd_ (Cwd openccSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libopencc.a"
         removeFilesAfter outPrefix ["bin", "lib/pkgconfig"]
   "opencc" ~> do
     need [ "marisa" ]
@@ -538,7 +543,7 @@ glogRule = do
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     -- remove absolute path by __FILE__ macro
     cmd_ (Cwd glogSrc) Shell "sed -i '618s|\\(^add_library (glog.*\\)|target_compile_options\\(glogbase PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "glog" </> a
         let buildDir = "build-" <> a
@@ -562,6 +567,7 @@ glogRule = do
           ]
         cmd_ (Cwd glogSrc) cmake "--build" buildDir
         cmd_ (Cwd glogSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libglog.a"
         removeFilesAfter outPrefix ["lib/pkgconfig"]
   "glog" ~> do
     env <- getAndroidEnv
@@ -580,7 +586,7 @@ yamlCppRule = do
   buildYamlCpp <- addOracle $ \(WithAndroidEnv YamlCpp env@AndroidEnv {..}) -> do
     yamlcppSrc <- getCanonicalizedRootSrc "yaml-cpp"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "yaml-cpp" </> a
         let buildDir = "build-" <> a
@@ -604,6 +610,7 @@ yamlCppRule = do
           ]
         cmd_ (Cwd yamlcppSrc) cmake "--build" buildDir
         cmd_ (Cwd yamlcppSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libyaml-cpp.a"
         removeFilesAfter outPrefix ["lib/pkgconfig"]
   "yaml-cpp" ~> do
     env <- getAndroidEnv
@@ -622,7 +629,7 @@ leveldbRule = do
   buildLevelDB <- addOracle $ \(WithAndroidEnv LevelDB env@AndroidEnv {..}) -> do
     leveldbSrc <- getCanonicalizedRootSrc "leveldb"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "leveldb" </> a
         let buildDir = "build-" <> a
@@ -645,6 +652,7 @@ leveldbRule = do
           ]
         cmd_ (Cwd leveldbSrc) cmake "--build" buildDir
         cmd_ (Cwd leveldbSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libleveldb.a"
         removeFilesAfter outPrefix ["lib/pkgconfig"]
   "leveldb" ~> do
     env <- getAndroidEnv
@@ -664,7 +672,7 @@ marisaRule = do
     marisaSrc <- getCanonicalizedRootSrc "marisa-trie"
     out <- liftIO $ getCurrentDirectory >>= canonicalizePath
     cmd_ (Cwd marisaSrc) Shell "sed -i '42s|\\(^install.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "marisa" </> a
         let buildDir = "build-" <> a
@@ -685,6 +693,7 @@ marisaRule = do
           ]
         cmd_ (Cwd marisaSrc) cmake "--build" buildDir
         cmd_ (Cwd marisaSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libmarisa.a"
   "marisa" ~> do
     env <- getAndroidEnv
     buildMarisa $ WithAndroidEnv Marisa env
@@ -708,7 +717,7 @@ librimeRule = do
     cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i '18s|^add_subdirectory.*||' CMakeLists.txt"
     -- remove absolute path by __FILE__ macro
     cmd_ (Cwd librimeSrc) Shell "sed -i '143s|\\(^.*target_link_libraries.*\\)|target_compile_options\\(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' src/CMakeLists.txt"
-    withAndroidEnv env $ \cmake toolchain ninja abiList ->
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "librime" </> a
         let buildDir = "build-" <> a
@@ -733,6 +742,7 @@ librimeRule = do
           ]
         cmd_ (Cwd librimeSrc) cmake "--build" buildDir
         cmd_ (Cwd librimeSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/librime.a"
         removeFilesAfter outPrefix ["lib/pkgconfig"]
   "librime" ~> do
     need [ "opencc",
@@ -781,8 +791,11 @@ getABIList AndroidEnv {..} = split (== ',') abi
 getCmakeToolchain :: AndroidEnv -> FilePath
 getCmakeToolchain AndroidEnv {..} = ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake"
 
-withAndroidEnv :: AndroidEnv -> (FilePath -> FilePath -> FilePath -> [String] -> Action a) -> Action a
-withAndroidEnv env f = f (getSdkCmake env) (getCmakeToolchain env) (getSdkNinja env) (getABIList env)
+getNdkStrip :: AndroidEnv -> FilePath
+getNdkStrip AndroidEnv {..} = ndkRoot </> "toolchains" </> "llvm" </> "prebuilt" </> "linux-x86_64" </> "bin" </> "llvm-strip"
+
+withAndroidEnv :: AndroidEnv -> (FilePath -> FilePath -> FilePath -> FilePath -> [String] -> Action a) -> Action a
+withAndroidEnv env f = f (getSdkCmake env) (getCmakeToolchain env) (getSdkNinja env) (getNdkStrip env) (getABIList env)
 
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = do
