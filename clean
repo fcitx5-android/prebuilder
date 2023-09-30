@@ -1,5 +1,0 @@
-#! /usr/bin/env bash
-
-rm -rf build
-git submodule foreach --recursive git reset --hard
-git submodule foreach --recursive git clean -x -f -d

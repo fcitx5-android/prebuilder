@@ -6,7 +6,7 @@ maintainer:    berberman@yandex.com
 build-type:    Simple
 
 executable prebuilder
-  ghc-options:      -Wall
+  ghc-options:      -Wall -threaded -rtsopts
   main-is:          Main.hs
   build-depends:
     , aeson
@@ -17,5 +17,20 @@ executable prebuilder
     , shake
     , text
 
-  hs-source-dirs:   .
+  hs-source-dirs:   src
   default-language: Haskell2010
+  other-modules:
+    Base
+    Rules.AnthyData
+    Rules.Boost
+    Rules.Fcitx5Data
+    Rules.Fmt
+    Rules.GLog
+    Rules.LevelDB
+    Rules.LibEvent
+    Rules.LibIntlLite
+    Rules.LibRime
+    Rules.Lua
+    Rules.MarisaTrie
+    Rules.OpenCC
+    Rules.YAMLCpp
