@@ -23,10 +23,10 @@ boostRule = do
     sha256 <- getConfig' "boost_sha256"
     let boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
         boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/" <> boostVersion <> "/source/"
-    download boostUrl boostTar sha256
+    _ <- download boostUrl boostTar sha256
     cmd_
-      (Env [("BUILD_DIR", outputDir)])
-      (boostAndroidSrc </> "build-android.sh")
+      (Cwd outputDir)
+      (".." </> boostAndroidSrc </> "build-android.sh")
       [ "--boost=" <> boostVersion,
         "--with-libraries=" <> boostLib,
         "--arch=" <> abi,
@@ -42,14 +42,14 @@ boostRule = do
         firstAbi = head abiList
     _ <- buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex,system") env
     getDirectoryFiles
-      (outputDir </> "out" </> firstAbi </> "include" </> "boost")
+      (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost")
       ["//*"]
-      >>= mapM_ (\x -> copyFile' (outputDir </> "out" </> firstAbi </> "include" </> "boost" </> x) $ outputDir </> "boost" </> "include" </> "boost" </> x)
+      >>= mapM_ (\x -> copyFile' (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost" </> x) $ outputDir </> "boost" </> "include" </> "boost" </> x)
     forM_ abiList $ \a -> do
       getDirectoryFiles
-        (outputDir </> "out" </> a </> "lib")
+        (outputDir </> "build" </> "out" </> a </> "lib")
         ["*.a", "//*.cmake"]
-        >>= mapM_ (\x -> copyFile' (outputDir </> "out" </> a </> "lib" </> x) $ outputDir </> "boost" </> a </> "lib" </> x)
+        >>= mapM_ (\x -> copyFile' (outputDir </> "build" </> "out" </> a </> "lib" </> x) $ outputDir </> "boost" </> a </> "lib" </> x)
       -- symlink headers for each abi to reduce size
       let path = outputDir </> "boost" </> a </> "include"
       liftIO $ whenM (doesPathExist path) $ removePathForcibly path
