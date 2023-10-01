@@ -24,6 +24,7 @@ boostRule = do
     let boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
         boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/" <> boostVersion <> "/source/"
     _ <- download boostUrl boostTar sha256
+    -- this script always clean the build directory before building
     cmd_
       (Cwd outputDir)
       (".." </> boostAndroidSrc </> "build-android.sh")
@@ -40,17 +41,22 @@ boostRule = do
     -- we take a random one
     let abiList = getABIList env
         firstAbi = head abiList
-    _ <- buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex,system") env
-    getDirectoryFiles
-      (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost")
-      ["//*"]
-      >>= mapM_ (\x -> copyFile' (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost" </> x) $ outputDir </> "boost" </> "include" </> "boost" </> x)
-    forM_ abiList $ \a -> do
-      getDirectoryFiles
-        (outputDir </> "build" </> "out" </> a </> "lib")
-        ["*.a", "//*.cmake"]
-        >>= mapM_ (\x -> copyFile' (outputDir </> "build" </> "out" </> a </> "lib" </> x) $ outputDir </> "boost" </> a </> "lib" </> x)
-      -- symlink headers for each abi to reduce size
-      let path = outputDir </> "boost" </> a </> "include"
-      liftIO $ whenM (doesPathExist path) $ removePathForcibly path
-      liftIO $ createDirectoryLink (".." </> "include") path
+    buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex,system") env
+    liftIO $ do
+      getDirectoryFilesIO
+        (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost")
+        ["//*"]
+        >>= mapM_
+          ( \x ->
+              copyFileAndCreateDir (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost" </> x) $
+                outputDir </> "boost" </> "include" </> "boost" </> x
+          )
+      forM_ abiList $ \a -> do
+        getDirectoryFilesIO
+          (outputDir </> "build" </> "out" </> a </> "lib")
+          ["*.a", "//*.cmake"]
+          >>= mapM_ (\x -> copyFileAndCreateDir (outputDir </> "build" </> "out" </> a </> "lib" </> x) $ outputDir </> "boost" </> a </> "lib" </> x)
+        -- symlink headers for each abi to reduce size
+        let path = outputDir </> "boost" </> a </> "include"
+        whenM (doesPathExist path) $ removePathForcibly path
+        createDirectoryLink (".." </> "include") path

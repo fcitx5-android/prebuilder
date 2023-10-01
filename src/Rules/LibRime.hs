@@ -19,16 +19,23 @@ librimeRule :: Rules ()
 librimeRule = do
   buildLibrime <- addOracle $ \(WithAndroidEnv LibRime env@AndroidEnv {..}) -> do
     let librimeSrc = "librime"
-    cmd_ (Cwd (librimeSrc </> "plugins")) Shell "ls lua || ln -s ../../librime-lua lua"
+    -- canocialize for symlink
+    librimeLuaSrc <- liftIO $ canonicalizePath "librime-lua"
+    librimeOctagramSrc <- liftIO $ canonicalizePath "librime-octagram"
+    out <- liftIO $ canonicalizePath outputDir
+    liftIO $ do
+      removePathForcibly (librimeSrc </> "plugins" </> "lua")
+      createDirectoryLink librimeLuaSrc (librimeSrc </> "plugins" </> "lua")
+      removePathForcibly (librimeSrc </> "plugins" </> "octagram")
+      createDirectoryLink librimeOctagramSrc (librimeSrc </> "plugins" </> "octagram")
     cmd_ (Cwd (librimeSrc </> "plugins" </> "lua")) Shell "sed -i '11s|^\\s*if(LUA_FOUND)|set(LUA_FOUND 1)\\nset(LUA_INCLUDE_DIRS \"${CMAKE_CURRENT_SOURCE_DIR}/../build/lua/${ANDROID_ABI}/include\")\\n\\0|' CMakeLists.txt"
-    cmd_ (Cwd (librimeSrc </> "plugins")) Shell "ls octagram || ln -s ../../librime-octagram octagram"
     cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i '18s|^add_subdirectory.*||' CMakeLists.txt"
     -- remove absolute path by __FILE__ macro
     cmd_ (Cwd librimeSrc) Shell "sed -i '143s|\\(^.*target_link_libraries.*\\)|target_compile_options\\(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' src/CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "librime" </> a
-        let buildDir = outputDir </> "librime-build-" <> a
+        let outPrefix = out </> "librime" </> a
+        let buildDir = out </> "librime-build-" <> a
         cmd_
           (Cwd librimeSrc)
           cmake
@@ -45,7 +52,7 @@ librimeRule = do
               <> intercalate
                 ";"
                 ( map
-                    (\x -> outputDir </> x </> a)
+                    (\x -> out </> x </> a)
                     [ "boost",
                       "glog",
                       "yaml-cpp",
@@ -53,7 +60,7 @@ librimeRule = do
                       "marisa",
                       "opencc"
                     ]
-                    <> [librimeSrc]
+                    <> ["."]
                 ),
             "-DBUILD_SHARED_LIBS=OFF",
             "-DBUILD_STATIC=ON",
@@ -71,7 +78,7 @@ librimeRule = do
         "glog",
         "yaml-cpp",
         "leveldb",
-        "marisa-trie"
+        "marisa"
       ]
     env <- getAndroidEnv
     buildLibrime $ WithAndroidEnv LibRime env

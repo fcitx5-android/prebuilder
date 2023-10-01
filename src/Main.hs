@@ -23,7 +23,7 @@ import Rules.LibEvent
 import Rules.LibIntlLite
 import Rules.LibRime
 import Rules.Lua
-import Rules.MarisaTrie
+import Rules.Marisa
 import Rules.OpenCC
 import Rules.YAMLCpp
 
@@ -51,7 +51,7 @@ main = do
       glogRule
       yamlCppRule
       leveldbRule
-      marisaTrieRule
+      marisaRule
       librimeRule
       anthyDictRule
       "everything" ~> do

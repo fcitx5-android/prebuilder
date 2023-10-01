@@ -18,10 +18,11 @@ fmtRule :: Rules ()
 fmtRule = do
   buildFmt <- addOracle $ \(WithAndroidEnv Fmt env@AndroidEnv {..}) -> do
     let fmtSrc = "fmt"
+    out <- liftIO $ canonicalizePath outputDir
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "fmt" </> a
-        let buildDir = outputDir </> "fmt-build-" <> a
+        let outPrefix = out </> "fmt" </> a
+        let buildDir = out </> "fmt-build-" <> a
         cmd_
           (Cwd fmtSrc)
           cmake

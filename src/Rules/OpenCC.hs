@@ -16,14 +16,15 @@ type instance RuleResult OpenCC = ()
 
 openccRule :: Rules ()
 openccRule = do
-  buildOpenCC <- addOracleCache $ \(WithAndroidEnv OpenCC env@AndroidEnv {..}) -> do
+  buildOpenCC <- addOracle $ \(WithAndroidEnv OpenCC env@AndroidEnv {..}) -> do
     let openccSrc = "OpenCC"
+    out <- liftIO $ canonicalizePath outputDir
     -- use prebuilt marisa
     cmd_ (Cwd openccSrc) Shell "sed -i '213s|find_library(LIBMARISA NAMES marisa)|find_package(marisa)\\nset(LIBMARISA marisa)|' CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "opencc" </> a
-        let buildDir = outputDir </> "opencc-build-" <> a
+        let outPrefix = out </> "opencc" </> a
+        let buildDir = out </> "opencc-build-" <> a
         cmd_
           (Cwd openccSrc)
           cmake
@@ -48,7 +49,7 @@ openccRule = do
             "-DENABLE_BENCHMARK=OFF",
             "-DENABLE_DARTS=OFF",
             "-DUSE_SYSTEM_MARISA=ON",
-            "-Dmarisa_DIR=" <> (outputDir </> "marisa" </> a </> "lib" </> "cmake" </> "marisa"),
+            "-Dmarisa_DIR=" <> (out </> "marisa" </> a </> "lib" </> "cmake" </> "marisa"),
             "-DUSE_SYSTEM_PYBIND11=OFF",
             "-DUSE_SYSTEM_RAPIDJSON=OFF",
             "-DUSE_SYSTEM_TCLAP=OFF"
@@ -58,19 +59,28 @@ openccRule = do
         cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libopencc.a"
         removeFilesAfter outPrefix ["bin", "lib/pkgconfig"]
   "opencc" ~> do
-    need ["marisa-trie"]
+    need ["marisa"]
     env <- getAndroidEnv
     -- since dictionary files are the same regardless of abi
     -- we take a random one
     let abiList = getABIList env
         firstAbi = head abiList
-    _ <- buildOpenCC $ WithAndroidEnv OpenCC env
-    getDirectoryFiles
-      (outputDir </> "opencc" </> firstAbi </> "share" </> "opencc")
-      ["//*"]
-      >>= mapM_ (\x -> copyFile' (outputDir </> "opencc" </> firstAbi </> "share" </> "opencc" </> x) $ outputDir </> "opencc" </> "data" </> x)
-    forM_ abiList $ \a -> do
-      -- symlink dictionaries for each abi to reduce size
-      let dataPath = outputDir </> "opencc" </> a </> "share" </> "opencc"
-      liftIO $ whenM (doesPathExist dataPath) $ removePathForcibly dataPath
-      liftIO $ createDirectoryLink (".." </> ".." </> "data") dataPath
+    -- delete old data and symlinks
+    liftIO $ do
+      removePathForcibly $ outputDir </> "opencc" </> "data"
+      forM_ abiList $ \a -> removePathForcibly $ outputDir </> "opencc" </> a </> "share" </> "opencc"
+    buildOpenCC $ WithAndroidEnv OpenCC env
+    liftIO $ do
+      getDirectoryFilesIO
+        (outputDir </> "opencc" </> firstAbi </> "share" </> "opencc")
+        ["//*"]
+        >>= mapM_
+          ( \x ->
+              copyFileAndCreateDir (outputDir </> "opencc" </> firstAbi </> "share" </> "opencc" </> x) $
+                outputDir </> "opencc" </> "data" </> x
+          )
+      forM_ abiList $ \a -> do
+        -- symlink dictionaries for each abi to reduce size
+        let dataPath = outputDir </> "opencc" </> a </> "share" </> "opencc"
+        whenM (doesPathExist dataPath) $ removePathForcibly dataPath
+        createDirectoryLink (".." </> ".." </> "data") dataPath

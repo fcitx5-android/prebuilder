@@ -18,10 +18,11 @@ libintlLiteRule :: Rules ()
 libintlLiteRule = do
   buildLibintlLite <- addOracle $ \(WithAndroidEnv LibIntlLite env@AndroidEnv {..}) -> do
     let libintlSrc = "libintl-lite"
+    out <- liftIO $ canonicalizePath outputDir
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "libintl-lite" </> a
-        let buildDir = outputDir </> "libintl-lite-build-" <> a
+        let outPrefix = out </> "libintl-lite" </> a
+        let buildDir = out </> "libintl-lite-build-" <> a
         cmd_
           (Cwd libintlSrc)
           cmake

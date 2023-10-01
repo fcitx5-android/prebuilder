@@ -18,10 +18,11 @@ leveldbRule :: Rules ()
 leveldbRule = do
   buildLevelDB <- addOracle $ \(WithAndroidEnv LevelDB env@AndroidEnv {..}) -> do
     let leveldbSrc = "leveldb"
+    out <- liftIO $ canonicalizePath outputDir
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "leveldb" </> a
-        let buildDir = "leveldb-build-" <> a
+        let outPrefix = out </> "leveldb" </> a
+        let buildDir = out </> "leveldb-build-" <> a
         cmd_
           (Cwd leveldbSrc)
           cmake

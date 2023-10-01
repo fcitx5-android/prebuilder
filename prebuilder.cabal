@@ -31,6 +31,6 @@ executable prebuilder
     Rules.LibIntlLite
     Rules.LibRime
     Rules.Lua
-    Rules.MarisaTrie
+    Rules.Marisa
     Rules.OpenCC
     Rules.YAMLCpp

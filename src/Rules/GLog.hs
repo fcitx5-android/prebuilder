@@ -18,12 +18,13 @@ glogRule :: Rules ()
 glogRule = do
   buildGlog <- addOracle $ \(WithAndroidEnv GLog env@AndroidEnv {..}) -> do
     let glogSrc = "glog"
+    out <- liftIO $ canonicalizePath outputDir
     -- remove absolute path by __FILE__ macro
     cmd_ (Cwd glogSrc) Shell "sed -i '618s|\\(^add_library (glog.*\\)|target_compile_options\\(glogbase PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "glog" </> a
-        let buildDir = outputDir </> "glog-build-" <> a
+        let outPrefix = out </> "glog" </> a
+        let buildDir = out </> "glog-build-" <> a
         cmd_
           (Cwd glogSrc)
           cmake

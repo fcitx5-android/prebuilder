@@ -27,11 +27,11 @@ module Base
     getConfig',
     prebuilderVersion,
     outputDir,
+    copyFileAndCreateDir,
   )
 where
 
 import Control.Monad.Extra (forM_, fromMaybeM, whenM)
-import qualified Data.ByteString.Char8 as BS
 import Data.List.Extra (split)
 import Data.Maybe (fromJust)
 import Development.Shake
@@ -68,27 +68,25 @@ data DownloadFile = DownloadFile
 type instance RuleResult DownloadFile = ()
 
 downloadFileRule :: Rules ()
-downloadFileRule = addBuiltinRule noLint noIdentity $ \DownloadFile {..} mOld mode -> do
-  b <- liftIO $ IO.doesFileExist downloadFileName
-  mNow <- if b then Just <$> sha256sum downloadFileName else pure Nothing
+downloadFileRule = addBuiltinRule noLint noIdentity $ \DownloadFile {..} _ _ -> do
+  let downloadedFilePath = outputDir </> downloadFileName
+  b <- liftIO $ IO.doesFileExist downloadedFilePath
+  mNow <- if b then Just <$> sha256sum downloadedFilePath else pure Nothing
   case mNow of
     Just now
-      | mode == RunDependenciesSame,
-        now == downloadSha256,
-        Just (BS.unpack -> old) <- mOld,
-        old == now -> do
-          pure $ RunResult ChangedNothing (BS.pack now) ()
+      | now == downloadSha256 ->
+          pure $ RunResult ChangedRecomputeSame mempty ()
     _ -> do
       let url = downloadBaseUrl <> downloadFileName
       cmd_ (Cwd outputDir) "curl" "-LO" url
-      sha256 <- sha256sum downloadFileName
+      sha256 <- sha256sum downloadedFilePath
       if sha256 /= downloadSha256
         then fail $ "SHA256 mismatched: expected " <> (if not $ null downloadSha256 then downloadSha256 else "[empty]") <> ", but got " <> sha256
-        else pure $ RunResult ChangedRecomputeDiff (BS.pack sha256) ()
+        else pure $ RunResult ChangedRecomputeDiff mempty ()
 
 sha256sum :: FilePath -> Action String
 sha256sum file = do
-  (Stdout result) <- cmd (Cwd outputDir) "sha256sum" file
+  (Stdout result) <- cmd "sha256sum" file
   pure $ takeWhile (/= ' ') result
 
 -- | Download to @outputDir@.
@@ -148,3 +146,8 @@ type instance RuleResult (WithAndroidEnv k) = RuleResult k
 --------------------------------------------------------------------------------
 getConfig' :: String -> Action String
 getConfig' x = fromJust <$> getConfig x
+
+copyFileAndCreateDir :: FilePath -> FilePath -> IO ()
+copyFileAndCreateDir src dst = do
+  IO.createDirectoryIfMissing True $ takeDirectory dst
+  IO.copyFile src dst

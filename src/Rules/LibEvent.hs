@@ -18,6 +18,7 @@ libeventRule :: Rules ()
 libeventRule = do
   buildLibevent <- addOracle $ \(WithAndroidEnv LibEvent env@AndroidEnv {..}) -> do
     let libeventSrc = "libevent"
+    out <- liftIO $ canonicalizePath outputDir
     -- make cmake generate relative _IMPORT_PREFIX
     cmd_ (Cwd libeventSrc) "sed -i 1456s|${CMAKE_INSTALL_PREFIX}/|| CMakeLists.txt"
     cmd_ (Cwd libeventSrc) "sed -i 1475{\\|\"${PROJECT_SOURCE_DIR}/include\"|d} CMakeLists.txt"
@@ -27,8 +28,8 @@ libeventRule = do
     cmd_ (Cwd libeventSrc) Shell "sed -i '134s|NO_DEFAULT_PATH)|NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)|' cmake/LibeventConfig.cmake.in"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "libevent" </> a
-        let buildDir = outputDir </> "libevent-build-" <> a
+        let outPrefix = out </> "libevent" </> a
+        let buildDir = out </> "libevent-build-" <> a
         cmd_
           (Cwd libeventSrc)
           cmake

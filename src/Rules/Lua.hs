@@ -18,10 +18,11 @@ luaRule :: Rules ()
 luaRule = do
   buildLua <- addOracle $ \(WithAndroidEnv Lua env@AndroidEnv {..}) -> do
     let luaSrc = "Lua"
+    out <- liftIO $ canonicalizePath outputDir
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "lua" </> a
-        let buildDir = outputDir </> "lua-build-" <> a
+        let outPrefix = out </> "lua" </> a
+        let buildDir = out </> "lua-build-" <> a
         cmd_
           (Cwd luaSrc)
           cmake

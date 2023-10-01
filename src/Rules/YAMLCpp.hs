@@ -18,10 +18,11 @@ yamlCppRule :: Rules ()
 yamlCppRule = do
   buildYamlCpp <- addOracle $ \(WithAndroidEnv YamlCpp env@AndroidEnv {..}) -> do
     let yamlCppSrc = "yaml-cpp"
+    out <- liftIO $ canonicalizePath outputDir
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
-        let outPrefix = outputDir </> "yaml-cpp" </> a
-        let buildDir = outputDir </> "yaml-cpp-build-" <> a
+        let outPrefix = out </> "yaml-cpp" </> a
+        let buildDir = out </> "yaml-cpp-build-" <> a
         cmd_
           (Cwd yamlCppSrc)
           cmake
