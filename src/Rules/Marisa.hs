@@ -19,7 +19,7 @@ marisaRule = do
   buildMarisa <- addOracle $ \(WithAndroidEnv MarisaTrie env@AndroidEnv {..}) -> do
     let marisaSrc = "marisa-trie"
     out <- liftIO $ canonicalizePath outputDir
-    cmd_ (Cwd marisaSrc) Shell "sed -i '42s|\\(^install.*\\)|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
+    cmd_ (Cwd marisaSrc) Shell "sed -i '52s|install(TARGETS marisa.*|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\0|' CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "marisa" </> a

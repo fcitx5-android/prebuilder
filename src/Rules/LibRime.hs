@@ -28,10 +28,14 @@ librimeRule = do
       createDirectoryLink librimeLuaSrc (librimeSrc </> "plugins" </> "lua")
       removePathForcibly (librimeSrc </> "plugins" </> "octagram")
       createDirectoryLink librimeOctagramSrc (librimeSrc </> "plugins" </> "octagram")
+    -- use prebuilt lua
     cmd_ (Cwd (librimeSrc </> "plugins" </> "lua")) Shell "sed -i '11s|^\\s*if(LUA_FOUND)|set(LUA_FOUND 1)\\nset(LUA_INCLUDE_DIRS \"${CMAKE_CURRENT_SOURCE_DIR}/../build/lua/${ANDROID_ABI}/include\")\\n\\0|' CMakeLists.txt"
-    cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i '18s|^add_subdirectory.*||' CMakeLists.txt"
     -- remove absolute path by __FILE__ macro
-    cmd_ (Cwd librimeSrc) Shell "sed -i '143s|\\(^.*target_link_libraries.*\\)|target_compile_options\\(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' src/CMakeLists.txt"
+    cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i '13s|^set(plugin_name.*|target_compile_options(rime-octagram-objs PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
+    -- remove command line tools
+    cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i 19{/add_subdirectory\\(tools\\)/d} CMakeLists.txt"
+    -- remove absolute path by __FILE__ macro
+    cmd_ (Cwd librimeSrc) Shell "sed -i '143s|target_link_libraries(rime-static.*|target_compile_options(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' src/CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "librime" </> a
@@ -74,7 +78,8 @@ librimeRule = do
         removeFilesAfter outPrefix ["lib/pkgconfig"]
   "librime" ~> do
     need
-      [ "opencc",
+      [ "lua",
+        "opencc",
         "boost",
         "glog",
         "yaml-cpp",
