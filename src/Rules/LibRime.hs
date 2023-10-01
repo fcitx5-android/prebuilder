@@ -31,6 +31,8 @@ librimeRule = do
     -- use prebuilt lua
     cmd_ (Cwd (librimeSrc </> "plugins" </> "lua")) Shell "sed -i '11s|^\\s*if(LUA_FOUND)|set(LUA_FOUND 1)\\nset(LUA_INCLUDE_DIRS \"${CMAKE_CURRENT_SOURCE_DIR}/../build/lua/${ANDROID_ABI}/include\")\\n\\0|' CMakeLists.txt"
     -- remove absolute path by __FILE__ macro
+    cmd_ (Cwd (librimeSrc </> "plugins" </> "lua")) Shell "sed -i '47s|^set(plugin_name.*|target_compile_options(rime-lua-objs PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
+    -- remove absolute path by __FILE__ macro
     cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i '13s|^set(plugin_name.*|target_compile_options(rime-octagram-objs PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
     -- remove command line tools
     cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i 19{/add_subdirectory\\(tools\\)/d} CMakeLists.txt"
