@@ -62,6 +62,7 @@ librimeRule = do
                     ]
                     <> ["."]
                 ),
+            "-DCMAKE_BUILD_TYPE=Release",
             "-DBUILD_SHARED_LIBS=OFF",
             "-DBUILD_STATIC=ON",
             "-DBUILD_TEST=OFF",
