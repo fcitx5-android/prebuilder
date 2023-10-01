@@ -41,7 +41,7 @@ jobs:
           git config --global --add safe.directory '*'
           # use archlinux's dynamic only ghc
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
-          ./build-cabal -j everything
+          ./build-cabal everything
 
       - name: Move libraries to prebuilt and compress
         if: github.event_name == 'pull_request'
