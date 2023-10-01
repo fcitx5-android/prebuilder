@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [master]
+  pull_request:
 
 jobs:
   build:
@@ -42,7 +43,25 @@ jobs:
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
           ./build-cabal -j everything
 
+      - name: Move libraries to prebuilt and compress
+        if: github.event_name == 'pull_request'
+        run: |
+          cd build
+          mkdir prebuilt
+          for file in $(<artifacts.txt)
+          do
+            cp -a "$file" prebuilt/
+          done
+          tar --zstd -cf prebuilt.tar.zst prebuilt/
+
+      - name: Upload prebuilt
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v3
+        with:
+          path: build/prebuilt.tar.zst
+
       - name: Fetch prebuilt
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/checkout@v3
         with:
           path: prebuilt
@@ -51,6 +70,7 @@ jobs:
           persist-credentials: false
 
       - name: Push to prebuilt
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         working-directory: prebuilt
         run: |
           for file in $(<../build/artifacts.txt)
