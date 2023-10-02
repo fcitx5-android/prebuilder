@@ -31,6 +31,7 @@ module Base
   )
 where
 
+import Control.Applicative ((<|>))
 import Control.Monad.Extra (forM_, fromMaybeM, whenM)
 import Data.List.Extra (split)
 import Data.Maybe (fromJust)
@@ -125,7 +126,9 @@ withAndroidEnv env f = f (getSdkCmake env) (getCmakeToolchain env) (getSdkNinja 
 
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = do
-  sdkRoot <- env "ANDROID_SDK_ROOT"
+  sdkRoot <-
+    fromMaybeM (fail "Both environment variable ANDROID_HOME and ANDROID_SDK_ROOT are unset!") $
+      (<|>) <$> getEnv "ANDROID_HOME" <*> getEnv "ANDROID_SDK_ROOT"
   ndkRoot <- env "ANDROID_NDK_ROOT"
   sdkCmakeVersion <- env "CMAKE_VERSION"
   platform <- read <$> env "ANDROID_PLATFORM"
