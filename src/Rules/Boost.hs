@@ -54,8 +54,6 @@ boostRule = do
                   "context",
                   "contract",
                   "coroutine",
-                  "date_time",
-                  "exception",
                   "fiber",
                   "graph",
                   "json",
