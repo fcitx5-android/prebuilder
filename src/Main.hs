@@ -26,6 +26,7 @@ import Rules.Lua
 import Rules.Marisa
 import Rules.OpenCC
 import Rules.YAMLCpp
+import Rules.ZSTD
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -48,6 +49,7 @@ main = do
       luaRule
       openccRule
       boostRule
+      zstdRule
       glogRule
       yamlCppRule
       leveldbRule
@@ -65,6 +67,7 @@ main = do
                 "lua",
                 "opencc",
                 "boost",
+                "zstd",
                 "glog",
                 "yaml-cpp",
                 "leveldb",

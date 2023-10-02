@@ -46,3 +46,6 @@
 [submodule "librime-octagram"]
 	path = librime-octagram
 	url = https://github.com/lotem/librime-octagram
+[submodule "zstd"]
+	path = zstd
+	url = https://github.com/facebook/zstd.git

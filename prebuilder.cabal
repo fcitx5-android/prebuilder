@@ -34,3 +34,4 @@ executable prebuilder
     Rules.Marisa
     Rules.OpenCC
     Rules.YAMLCpp
+    Rules.ZSTD
