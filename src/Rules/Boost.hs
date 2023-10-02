@@ -23,7 +23,7 @@ boostRule = do
     out <- liftIO $ canonicalizePath outputDir
     let boostTag = "boost-" <> boostVersion
         boostTar = boostTag <.> "tar" <.> "xz"
-        boostUrl = "https://github.com/boostorg/boost/releases/download/" </> boostTag </> boostTar 
+        boostUrl = "https://github.com/boostorg/boost/releases/download" </> boostTag <> "/"
     _ <- download boostUrl boostTar sha256
     cmd_
       (Cwd outputDir)
