@@ -45,6 +45,7 @@ boostRule = do
             "-DANDROID_PLATFORM=" <> show platform,
             "-DANDROID_STL=c++_shared",
             "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_INSTALL_MESSAGE=NEVER",
             "-DCMAKE_BUILD_TYPE=Release",
             "-DBOOST_EXCLUDE_LIBRARIES="
               <> intercalate
