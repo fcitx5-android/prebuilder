@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [master]
+  pull_request:
 
 jobs:
   build:
@@ -17,7 +18,7 @@ jobs:
     steps:
       - name: Install build dependencies
         run: |
-          pacman -Syu --needed --noconfirm ghc git unzip haskell-shake haskell-aeson-pretty libime opencc jdk17-openjdk python
+          pacman -Syu --needed --noconfirm ghc git unzip haskell-shake haskell-aeson-pretty libime opencc jdk17-openjdk python cabal-install
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
@@ -38,10 +39,29 @@ jobs:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
         run: |
           git config --global --add safe.directory '*'
-          mkdir build && cd build
-          runghc ../Main.hs -j everything
+          # use archlinux's dynamic only ghc
+          cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
+          ./build-cabal -j everything
 
-      - name: Fetch prebuilt
+      - name: Pack prebuilt libraries
+        if: github.event_name == 'pull_request'
+        run: |
+          cd build
+          mkdir prebuilt
+          for file in $(<artifacts.txt)
+          do
+            cp -a "$file" prebuilt/
+          done
+          tar --zstd -cf prebuilt.tar.zst prebuilt/
+
+      - name: Upload prebuilt to artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v3
+        with:
+          path: build/prebuilt.tar.zst
+
+      - name: Fetch fcitx5-android/prebuilt
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/checkout@v3
         with:
           path: prebuilt
@@ -49,7 +69,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Push to prebuilt
+      - name: Push to fcitx5-android/prebuilt
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         working-directory: prebuilt
         run: |
           for file in $(<../build/artifacts.txt)
