@@ -50,11 +50,11 @@ main = do
       openccRule
       boostRule
       zstdRule
-      --glogRule
-      --yamlCppRule
-      --leveldbRule
+      glogRule
+      yamlCppRule
+      leveldbRule
       marisaRule
-      --librimeRule
+      librimeRule
       anthyDictRule
       "everything" ~> do
         let artifacts =
@@ -68,11 +68,11 @@ main = do
                 "opencc",
                 "boost",
                 "zstd",
-                --"glog",
-                --"yaml-cpp",
-                --"leveldb",
+                "glog",
+                "yaml-cpp",
+                "leveldb",
                 "marisa",
-                --"librime",
+                "librime",
                 "anthy-dict"
               ]
         need artifacts
