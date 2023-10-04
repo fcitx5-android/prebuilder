@@ -1,61 +1,99 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Rules.Boost (boostRule) where
 
 import Base
-import Data.List.Extra (replace)
+import Data.List.Extra (intercalate)
 
-newtype Boost = Boost {boostLib :: String}
-  deriving stock (Show, Typeable, Eq, Generic)
-  deriving newtype (Hashable, Binary, NFData)
+data Boost = Boost
+  deriving stock (Eq, Show, Typeable, Generic)
+  deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult Boost = ()
 
 boostRule :: Rules ()
 boostRule = do
-  buildBoost <- addOracle $ \(WithAndroidEnv Boost {..} AndroidEnv {..}) -> do
-    let boostAndroidSrc = "Boost-for-Android"
+  buildBoost <- addOracle $ \(WithAndroidEnv Boost env@AndroidEnv {..}) -> do
     boostVersion <- getConfig' "boost_version"
     sha256 <- getConfig' "boost_sha256"
-    let boostTar = "boost_" <> replace "." "_" boostVersion <.> "tar" <.> "bz2"
-        boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/" <> boostVersion <> "/source/"
+    out <- liftIO $ canonicalizePath outputDir
+    let boostTag = "boost-" <> boostVersion
+        boostTar = boostTag <.> "tar" <.> "xz"
+        boostUrl = "https://github.com/boostorg/boost/releases/download" </> boostTag <> "/"
     _ <- download boostUrl boostTar sha256
-    -- this script always clean the build directory before building
     cmd_
       (Cwd outputDir)
-      (".." </> boostAndroidSrc </> "build-android.sh")
-      [ "--boost=" <> boostVersion,
-        "--with-libraries=" <> boostLib,
-        "--arch=" <> abi,
-        "--target-version=" <> show platform,
-        "--layout="
-      ]
-      ndkRoot
+      "tar" "xf" boostTar
+    let boostSrc = out </> boostTag
+    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
+      forM_ abiList $ \a -> do
+        let outPrefix = out </> "boost" </> a
+        let buildDir = out </> "boost-build-" <> a
+        cmd_
+          (Cwd boostSrc)
+          cmake
+          "-B"
+          buildDir
+          "-GNinja"
+          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
+            "-DANDROID_ABI=" <> a,
+            "-DANDROID_PLATFORM=" <> show platform,
+            "-DANDROID_STL=c++_shared",
+            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
+            "-DCMAKE_INSTALL_MESSAGE=NEVER",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBOOST_EXCLUDE_LIBRARIES="
+              <> intercalate
+                ";"
+                [ "chrono",
+                  "context",
+                  "contract",
+                  "coroutine",
+                  "fiber",
+                  "graph",
+                  "json",
+                  "locale",
+                  "log",
+                  "math",
+                  "nowide",
+                  "program_options",
+                  "serialization",
+                  "stacktrace",
+                  "test",
+                  "thread",
+                  "timer",
+                  "type_erasure",
+                  "url",
+                  "wave",
+                  "wserialization"
+                ],
+            "-DBOOST_INSTALL_LAYOUT=system"
+          ]
+        cmd_ (Cwd boostSrc) cmake "--build" buildDir
+        cmd_ (Cwd boostSrc) cmake "--install" buildDir
+        cmd_ (Cwd outPrefix) Shell strip "--strip-unneeded" "lib/libboost_*.a"
   "boost" ~> do
     env <- getAndroidEnv
     -- since header files are the same regardless of abi
     -- we take a random one
     let abiList = getABIList env
         firstAbi = head abiList
-    buildBoost $ WithAndroidEnv (Boost "filesystem,iostreams,regex,system") env
+    buildBoost $ WithAndroidEnv Boost env
     liftIO $ do
       getDirectoryFilesIO
-        (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost")
+        (outputDir </> "boost" </> firstAbi </> "include" </> "boost")
         ["//*"]
         >>= mapM_
           ( \x ->
-              copyFileAndCreateDir (outputDir </> "build" </> "out" </> firstAbi </> "include" </> "boost" </> x) $
+              copyFileAndCreateDir (outputDir </> "boost" </> firstAbi </> "include" </> "boost" </> x) $
                 outputDir </> "boost" </> "include" </> "boost" </> x
           )
       forM_ abiList $ \a -> do
-        getDirectoryFilesIO
-          (outputDir </> "build" </> "out" </> a </> "lib")
-          ["*.a", "//*.cmake"]
-          >>= mapM_ (\x -> copyFileAndCreateDir (outputDir </> "build" </> "out" </> a </> "lib" </> x) $ outputDir </> "boost" </> a </> "lib" </> x)
         -- symlink headers for each abi to reduce size
         let path = outputDir </> "boost" </> a </> "include"
         whenM (doesPathExist path) $ removePathForcibly path
