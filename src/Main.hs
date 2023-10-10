@@ -20,6 +20,7 @@ import Rules.Fmt
 import Rules.GLog
 import Rules.LevelDB
 import Rules.LibEvent
+import Rules.LibHangul
 import Rules.LibIntlLite
 import Rules.LibRime
 import Rules.Lua
@@ -55,6 +56,7 @@ main = do
       leveldbRule
       marisaRule
       librimeRule
+      libhangulRule
       anthyDictRule
       "everything" ~> do
         let artifacts =
@@ -73,6 +75,7 @@ main = do
                 "leveldb",
                 "marisa",
                 "librime",
+                "libhangul",
                 "anthy-dict"
               ]
         need artifacts

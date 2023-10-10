@@ -45,3 +45,6 @@
 [submodule "zstd"]
 	path = zstd
 	url = https://github.com/facebook/zstd.git
+[submodule "libhangul"]
+	path = libhangul
+	url = https://github.com/libhangul/libhangul
