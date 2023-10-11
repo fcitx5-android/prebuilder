@@ -21,6 +21,8 @@ libhangulRule = do
     out <- liftIO $ canonicalizePath outputDir
     -- disable executable
     cmd_ (Cwd libhangulSrc) Shell "sed -i '53s|add_subdirectory(tools)||' CMakeLists.txt"
+    cmd_ (Cwd libhangulSrc) Shell "sed -i '48s|FULL_LOCALEDIR|LOCALEDIR|' hangul/CMakeLists.txt"
+    cmd_ (Cwd libhangulSrc) Shell "sed -i '49,50s|FULL_DATADIR|DATADIR|' hangul/CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libhangul" </> a
