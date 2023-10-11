@@ -32,3 +32,4 @@ Cabal is required to build this project.
 * librime: [rime/librime](https://github.com/rime/librime)
 * librime-lua: [rime/librime-lua](https://github.com/hchunhui/librime-lua)
 * librime-octagram: [rime/librime-octagram](https://github.com/lotem/librime-octagram)
+* libhangul: [libhangul/libhangul](https://github.com/libhangul/libhangul)

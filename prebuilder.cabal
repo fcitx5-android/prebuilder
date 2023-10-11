@@ -28,6 +28,7 @@ executable prebuilder
     Rules.GLog
     Rules.LevelDB
     Rules.LibEvent
+    Rules.LibHangul
     Rules.LibIntlLite
     Rules.LibRime
     Rules.Lua
