@@ -15,10 +15,12 @@ import Data.Text.Lazy.Builder qualified as TLB
 import Development.Shake.Config
 import Rules.AnthyData
 import Rules.Boost
+import Rules.ChewingData
 import Rules.Fcitx5Data
 import Rules.Fmt
 import Rules.GLog
 import Rules.LevelDB
+import Rules.LibChewing
 import Rules.LibEvent
 import Rules.LibHangul
 import Rules.LibIntlLite
@@ -57,6 +59,8 @@ main = do
       marisaRule
       librimeRule
       libhangulRule
+      chewingDictRule
+      libchewingRule
       anthyDictRule
       "everything" ~> do
         let artifacts =
@@ -76,6 +80,8 @@ main = do
                 "marisa",
                 "librime",
                 "libhangul",
+                "chewing-dict",
+                "libchewing",
                 "anthy-dict"
               ]
         need artifacts
