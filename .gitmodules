@@ -2,58 +2,103 @@
 	path = fmt
 	url = https://github.com/fmtlib/fmt
 	ignore = untracked
+	shallow = true
 [submodule "libevent"]
 	path = libevent
 	url = https://github.com/libevent/libevent
 	ignore = untracked
+	shallow = true
 [submodule "libintl-lite"]
 	path = libintl-lite
 	url = https://github.com/j-jorge/libintl-lite
 	ignore = untracked
+	branch = master
+	shallow = true
 [submodule "Lua"]
 	path = Lua
 	url = https://github.com/walterschell/Lua
 	ignore = untracked
+	branch = master
+	shallow = true
 [submodule "OpenCC"]
 	path = OpenCC
 	url = https://github.com/BYVoid/OpenCC
 	ignore = untracked
+	branch = master
+	shallow = true
 [submodule "anthy-unicode"]
 	path = anthy-unicode
 	url = https://github.com/fujiwarat/anthy-unicode
+	ignore = untracked
+	branch = main
+	shallow = true
 [submodule "glog"]
 	path = glog
 	url = https://github.com/google/glog
+	ignore = untracked
+	shallow = true
 [submodule "yaml-cpp"]
 	path = yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
+	ignore = untracked
+	shallow = true
 [submodule "leveldb"]
 	path = leveldb
 	url = https://github.com/google/leveldb
+	ignore = untracked
+	fetchRecurseSubmodules = false
+	shallow = true
 [submodule "marisa-trie"]
 	path = marisa-trie
 	url = https://github.com/rime/marisa-trie
+	ignore = untracked
+	branch = master
+	shallow = true
 [submodule "librime"]
 	path = librime
 	url = https://github.com/rime/librime
+	ignore = untracked
+	branch = master
+	fetchRecurseSubmodules = false
+	shallow = true
 [submodule "librime-lua"]
 	path = librime-lua
 	url = https://github.com/hchunhui/librime-lua
+	ignore = untracked
+	branch = master
+	shallow = true
 [submodule "librime-octagram"]
 	path = librime-octagram
 	url = https://github.com/lotem/librime-octagram
+	ignore = untracked
+	branch = master
+	shallow = true
 [submodule "zstd"]
 	path = zstd
 	url = https://github.com/facebook/zstd.git
+	ignore = untracked
+	shallow = true
 [submodule "libhangul"]
 	path = libhangul
 	url = https://github.com/libhangul/libhangul
+	ignore = untracked
+	branch = main
+	shallow = true
 [submodule "libchewing"]
 	path = libchewing
 	url = https://github.com/chewing/libchewing
+	ignore = untracked
+	shallow = true
 [submodule "libime"]
 	path = libime
 	url = https://github.com/fcitx/libime
+	ignore = untracked
+	branch = master
+	fetchRecurseSubmodules = true
+	shallow = true
 [submodule "libime-jyutping"]
 	path = libime-jyutping
 	url = https://github.com/fcitx/libime-jyutping
+	ignore = untracked
+	branch = master
+	shallow = true
