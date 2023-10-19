@@ -19,6 +19,7 @@ libchewingRule = do
   buildLibchewing <- addOracle $ \(WithAndroidEnv LibChewing env@AndroidEnv {..}) -> do
     let libchewingSrc = "libchewing"
     out <- liftIO $ canonicalizePath outputDir
+    -- CMakeLists may be changed in building chewing-dict
     cmd_ (Cwd libchewingSrc) Shell "git checkout -- CMakeLists.txt"
     -- merge libuserphrase.a into libchewing.a
     cmd_ (Cwd libchewingSrc) Shell "sed -i '400s|STATIC|OBJECT|' CMakeLists.txt"
@@ -53,3 +54,20 @@ libchewingRule = do
     need ["chewing-dict"]
     env <- getAndroidEnv
     buildLibchewing $ WithAndroidEnv LibChewing env
+
+chewingDictRule :: Rules ()
+chewingDictRule = do
+  let chewingSrc = "libchewing"
+      dataDir = outputDir </> "chewing-dict"
+  chewingSrc </> "data" </> "dictionary.dat" ~> do
+    -- CMakeLists may be changed in building libchewing
+    cmd_ (Cwd chewingSrc) "git checkout -- CMakeLists.txt"
+    cmd_ (Cwd chewingSrc) "./autogen.sh"
+    cmd_ (Cwd chewingSrc) "./configure --with-sqlite3=no"
+    cmd_ (Cwd chewingSrc) "make"
+  "chewing-dict" ~> do
+    copyFile' (chewingSrc </> "data" </> "dictionary.dat") (dataDir </> "dictionary.dat")
+    copyFile' (chewingSrc </> "data" </> "index_tree.dat") (dataDir </> "index_tree.dat")
+    copyFile' (chewingSrc </> "data" </> "pinyin.tab") (dataDir </> "pinyin.tab")
+    copyFile' (chewingSrc </> "data" </> "swkb.dat") (dataDir </> "swkb.dat")
+    copyFile' (chewingSrc </> "data" </> "symbols.dat") (dataDir </> "symbols.dat")

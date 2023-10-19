@@ -15,7 +15,6 @@ import Data.Text.Lazy.Builder qualified as TLB
 import Development.Shake.Config
 import Rules.AnthyData
 import Rules.Boost
-import Rules.ChewingData
 import Rules.Fcitx5Data
 import Rules.Fmt
 import Rules.GLog

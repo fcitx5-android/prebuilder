@@ -23,7 +23,6 @@ executable prebuilder
     Base
     Rules.AnthyData
     Rules.Boost
-    Rules.ChewingData
     Rules.Fcitx5Data
     Rules.Fmt
     Rules.GLog
