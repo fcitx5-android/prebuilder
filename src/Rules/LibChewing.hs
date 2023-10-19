@@ -16,10 +16,13 @@ type instance RuleResult LibChewing = ()
 
 libchewingRule :: Rules ()
 libchewingRule = do
+  let libchewingSrc = "libchewing"
+      dictOutputDir = outputDir </> "chewing-dict"
+      dictSrcDir = libchewingSrc </> "data"
+
   buildLibchewing <- addOracle $ \(WithAndroidEnv LibChewing env@AndroidEnv {..}) -> do
-    let libchewingSrc = "libchewing"
     out <- liftIO $ canonicalizePath outputDir
-    -- CMakeLists may be changed in building chewing-dict
+    -- CMakeLists may be changed in generateDict
     cmd_ (Cwd libchewingSrc) Shell "git checkout -- CMakeLists.txt"
     -- merge libuserphrase.a into libchewing.a
     cmd_ (Cwd libchewingSrc) Shell "sed -i '400s|STATIC|OBJECT|' CMakeLists.txt"
@@ -50,24 +53,24 @@ libchewingRule = do
         cmd_ (Cwd libchewingSrc) cmake "--install" buildDir
         cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libchewing.a"
         removeFilesAfter outPrefix ["lib/pkgconfig"]
+
+  phony "generateDict" $ do
+    -- CMakeLists may be changed in building libchewing
+    cmd_ (Cwd libchewingSrc) "git checkout -- CMakeLists.txt"
+    cmd_ (Cwd libchewingSrc) "./autogen.sh"
+    cmd_ (Cwd libchewingSrc) "./configure --with-sqlite3=no"
+    cmd_ (Cwd libchewingSrc) "make"
+
+  libchewingSrc </> "data/*" %> \_ -> need ["generateDict"]
+
+  "chewing-dict" ~> do
+    copyFile' (dictSrcDir </> "dictionary.dat") (dictOutputDir </> "dictionary.dat")
+    copyFile' (dictSrcDir </> "index_tree.dat") (dictOutputDir </> "index_tree.dat")
+    copyFile' (dictSrcDir </> "pinyin.tab") (dictOutputDir </> "pinyin.tab")
+    copyFile' (dictSrcDir </> "swkb.dat") (dictOutputDir </> "swkb.dat")
+    copyFile' (dictSrcDir </> "symbols.dat") (dictOutputDir </> "symbols.dat")
+
   "libchewing" ~> do
     need ["chewing-dict"]
     env <- getAndroidEnv
     buildLibchewing $ WithAndroidEnv LibChewing env
-
-chewingDictRule :: Rules ()
-chewingDictRule = do
-  let chewingSrc = "libchewing"
-      dataDir = outputDir </> "chewing-dict"
-  chewingSrc </> "data" </> "dictionary.dat" ~> do
-    -- CMakeLists may be changed in building libchewing
-    cmd_ (Cwd chewingSrc) "git checkout -- CMakeLists.txt"
-    cmd_ (Cwd chewingSrc) "./autogen.sh"
-    cmd_ (Cwd chewingSrc) "./configure --with-sqlite3=no"
-    cmd_ (Cwd chewingSrc) "make"
-  "chewing-dict" ~> do
-    copyFile' (chewingSrc </> "data" </> "dictionary.dat") (dataDir </> "dictionary.dat")
-    copyFile' (chewingSrc </> "data" </> "index_tree.dat") (dataDir </> "index_tree.dat")
-    copyFile' (chewingSrc </> "data" </> "pinyin.tab") (dataDir </> "pinyin.tab")
-    copyFile' (chewingSrc </> "data" </> "swkb.dat") (dataDir </> "swkb.dat")
-    copyFile' (chewingSrc </> "data" </> "symbols.dat") (dataDir </> "symbols.dat")

@@ -58,7 +58,6 @@ main = do
       marisaRule
       librimeRule
       libhangulRule
-      chewingDictRule
       libchewingRule
       anthyDictRule
       "everything" ~> do
