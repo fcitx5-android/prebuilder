@@ -9,7 +9,7 @@ chewingDictRule = do
   chewingSrc </> "data" </> "dictionary.dat" ~> do
     cmd_ (Cwd chewingSrc) "git checkout -- CMakeLists.txt"
     cmd_ (Cwd chewingSrc) "./autogen.sh"
-    cmd_ (Cwd chewingSrc) "./configure"
+    cmd_ (Cwd chewingSrc) "./configure --with-sqlite3=no"
     cmd_ (Cwd chewingSrc) "make"
   "chewing-dict" ~> do
     copyFile' (chewingSrc </> "data" </> "dictionary.dat") (dataDir </> "dictionary.dat")
