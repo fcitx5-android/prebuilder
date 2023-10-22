@@ -22,7 +22,7 @@ libchewingRule = do
 
   buildLibchewing <- addOracle $ \(WithAndroidEnv LibChewing env@AndroidEnv {..}) -> do
     out <- liftIO $ canonicalizePath outputDir
-    -- CMakeLists may be changed in generateDict
+    -- CMakeLists is changed in last build
     cmd_ (Cwd libchewingSrc) Shell "git checkout -- CMakeLists.txt"
     -- merge libuserphrase.a into libchewing.a
     cmd_ (Cwd libchewingSrc) Shell "sed -i '400s|STATIC|OBJECT|' CMakeLists.txt"
@@ -55,8 +55,6 @@ libchewingRule = do
         removeFilesAfter outPrefix ["lib/pkgconfig"]
 
   phony "generateDict" $ do
-    -- CMakeLists may be changed in building libchewing
-    cmd_ (Cwd libchewingSrc) "git checkout -- CMakeLists.txt"
     cmd_ (Cwd libchewingSrc) "./autogen.sh"
     cmd_ (Cwd libchewingSrc) "./configure --with-sqlite3=no"
     cmd_ (Cwd libchewingSrc) "make"
