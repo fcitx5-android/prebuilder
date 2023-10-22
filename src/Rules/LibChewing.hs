@@ -27,7 +27,7 @@ libchewingRule = do
     -- skip data and shared lib
     cmd_ (Cwd libchewingSrc) Shell "sed -i '171,189d;232,241d;328d;412,417d;455,456d' CMakeLists.txt"
     -- merge libuserphrase.a into libchewing.a
-    cmd_ (Cwd libchewingSrc) Shell "sed -i '371s|STATIC|OBJECT|' CMakeLists.txt"
+    cmd_ (Cwd libchewingSrc) Shell "sed -i '370s|STATIC|OBJECT|' CMakeLists.txt"
     -- remove absolute path by CHEWING_DATADIR macro
     cmd_ (Cwd libchewingSrc) Shell "sed -i '335s|${CMAKE_INSTALL_FULL_DATADIR}|.|' CMakeLists.txt"
     -- remove absolute path by __FILE__ macro
