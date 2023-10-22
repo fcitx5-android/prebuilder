@@ -24,12 +24,15 @@ libchewingRule = do
     out <- liftIO $ canonicalizePath outputDir
     -- CMakeLists is changed in last build
     cmd_ (Cwd libchewingSrc) Shell "git checkout -- CMakeLists.txt"
-    -- merge libuserphrase.a into libchewing.a
-    cmd_ (Cwd libchewingSrc) Shell "sed -i '400s|STATIC|OBJECT|' CMakeLists.txt"
     -- skip data and shared lib
     cmd_ (Cwd libchewingSrc) Shell "sed -i '171,189d;232,241d;328d;412,417d;455,456d' CMakeLists.txt"
+    -- merge libuserphrase.a into libchewing.a
+    cmd_ (Cwd libchewingSrc) Shell "sed -i '371s|STATIC|OBJECT|' CMakeLists.txt"
+    -- remove absolute path by CHEWING_DATADIR macro
+    cmd_ (Cwd libchewingSrc) Shell "sed -i '335s|${CMAKE_INSTALL_FULL_DATADIR}|.|' CMakeLists.txt"
     -- remove absolute path by __FILE__ macro
     cmd_ (Cwd libchewingSrc) Shell "sed -i '334s|set_target_properties(chewing.*|target_compile_options(chewing PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
+    cmd_ (Cwd libchewingSrc) Shell "sed -i '377s|endif()|target_compile_options(userphrase PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
     withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
       forM_ abiList $ \a -> do
         let outPrefix = out </> "libchewing" </> a
