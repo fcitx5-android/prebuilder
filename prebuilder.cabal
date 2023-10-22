@@ -27,6 +27,7 @@ executable prebuilder
     Rules.Fmt
     Rules.GLog
     Rules.LevelDB
+    Rules.LibChewing
     Rules.LibEvent
     Rules.LibHangul
     Rules.LibIntlLite

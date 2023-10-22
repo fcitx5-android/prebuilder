@@ -48,3 +48,6 @@
 [submodule "libhangul"]
 	path = libhangul
 	url = https://github.com/libhangul/libhangul
+[submodule "libchewing"]
+	path = libchewing
+	url = https://github.com/chewing/libchewing
