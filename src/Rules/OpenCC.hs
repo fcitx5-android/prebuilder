@@ -41,7 +41,7 @@ openccRule = do
               "-DUSE_SYSTEM_RAPIDJSON=OFF",
               "-DUSE_SYSTEM_TCLAP=OFF"
             ],
-          postBuildEachABI = stripLib "lib/libopencc.a" >>> removePkgConfig
+          postBuildEachABI = stripLib "lib/libopencc.a" >>> removePkgConfig >>> removeBin
         }
   "opencc" ~> do
     need ["marisa"]

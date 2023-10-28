@@ -11,6 +11,7 @@ module CMakeBuilder
     useCMake,
     stripLib,
     removePkgConfig,
+    removeBin,
   )
 where
 
@@ -129,3 +130,7 @@ stripLib path _ BuildEnv {..} =
 removePkgConfig :: BuildActionABI q
 removePkgConfig _ BuildEnv {..} =
   removeFilesAfter buildEnvOutPrefix ["lib/pkgconfig"]
+
+removeBin :: BuildActionABI q
+removeBin _ BuildEnv {..} =
+  removeFilesAfter buildEnvOutPrefix ["bin"]
