@@ -40,7 +40,7 @@
         '';
 
         buildInputs = old.buildInputs
-          ++ [ fcitx5 libime opencc autoconf automake pkg-config libtool ]
+          ++ [ fcitx5 libime opencc autoconf automake pkg-config libtool check ]
           ++ prebuilderShell.buildInputs;
 
         nativeBuildInputs = old.nativeBuildInputs
