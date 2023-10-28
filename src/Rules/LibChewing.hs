@@ -7,7 +7,6 @@ module Rules.LibChewing where
 
 import Base
 import CMakeBuilder
-import Control.Arrow ((>>>))
 
 data LibChewing = LibChewing
   deriving stock (Eq, Show, Typeable, Generic)
@@ -22,9 +21,10 @@ libchewingRule = do
       dictSrcDir = libchewingSrc </> "data"
 
   buildLibchewing <-
-    useCMake $  (cmakeBuilder "libchewing")
+    useCMake $
+      (cmakeBuilder "libchewing")
         { cmakeFlags = const ["-DWITH_SQLITE3=OFF"],
-          preBuild = \_ src -> do
+          preBuild = BuildAction $ \_ src -> do
             -- CMakeLists is changed in last build
             cmd_ (Cwd src) Shell "git checkout -- CMakeLists.txt"
             -- skip data and shared lib
@@ -32,7 +32,7 @@ libchewingRule = do
             -- remove absolute path by CHEWING_DATADIR macro
             -- remove absolute path by __FILE__ macro
             cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
-          postBuildEachABI = stripLib "lib/libchewing.a" >>> removePkgConfig
+          postBuildEachABI = stripLib "lib/libchewing.a" <> removePkgConfig
         }
   phony "generateDict" $ do
     cmd_ (Cwd libchewingSrc) "./autogen.sh"

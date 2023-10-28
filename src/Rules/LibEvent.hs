@@ -20,7 +20,7 @@ libeventRule = do
   buildLibevent <-
     useCMake $
       (cmakeBuilder "libevent")
-        { preBuild = \_ src -> do
+        { preBuild = BuildAction $ \_ src -> do
             -- make cmake generate relative _IMPORT_PREFIX
             cmd_ (Cwd src) "sed -i 1456s|${CMAKE_INSTALL_PREFIX}/|| CMakeLists.txt"
             cmd_ (Cwd src) "sed -i 1475{\\|\"${PROJECT_SOURCE_DIR}/include\"|d} CMakeLists.txt"
@@ -41,11 +41,15 @@ libeventRule = do
               ],
           -- we install manually in post build below
           doInstall = False,
-          postBuildEachABI = \k bEnv@BuildEnv {..} -> do
-            let cmake = getSdkCMake buildEnvAndroid
-            -- avoid void installing pkgconf files and python scripts
-            cmd_ (Cwd buildEnvSrc) cmake "--install" buildEnvBuildDir "--component" "lib"
-            cmd_ (Cwd buildEnvSrc) cmake "--install" buildEnvBuildDir "--component" "dev"
-            stripLib "lib/libevent.a" k bEnv
+          postBuildEachABI =
+            mconcat
+              [ BuildActionABI $ \_ BuildEnv {..} ->
+                  do
+                    let cmake = getSdkCMake buildEnvAndroid
+                    -- avoid void installing pkgconf files and python scripts
+                    cmd_ (Cwd buildEnvSrc) cmake "--install" buildEnvBuildDir "--component" "lib"
+                    cmd_ (Cwd buildEnvSrc) cmake "--install" buildEnvBuildDir "--component" "dev",
+                stripLib "lib/libevent*.a"
+              ]
         }
   "libevent" ~> buildWithAndroidEnv buildLibevent LibEvent

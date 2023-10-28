@@ -8,7 +8,6 @@ module Rules.LibRime where
 
 import Base
 import CMakeBuilder
-import Control.Arrow ((>>>))
 import Data.List.Extra (intercalate)
 
 data LibRime = LibRime
@@ -22,7 +21,7 @@ librimeRule = do
   buildLibrime <-
     useCMake $
       (cmakeBuilder "librime")
-        { preBuild = \_ src -> do
+        { preBuild = BuildAction $ \_ src -> do
             -- canocialize for symlink
             librimeLuaSrc <- liftIO $ canonicalizePath "librime-lua"
             librimeOctagramSrc <- liftIO $ canonicalizePath "librime-octagram"
@@ -61,7 +60,7 @@ librimeRule = do
                       <> ["."]
                   )
             ],
-          postBuildEachABI = stripLib "lib/librime.a" >>> removePkgConfig
+          postBuildEachABI = stripLib "lib/librime.a" <> removePkgConfig
         }
   "librime" ~> do
     need

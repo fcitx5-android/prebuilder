@@ -7,7 +7,6 @@ module Rules.Fmt (fmtRule) where
 
 import Base
 import CMakeBuilder
-import Control.Arrow ((>>>))
 
 data Fmt = Fmt
   deriving stock (Eq, Show, Typeable, Generic)
@@ -21,6 +20,6 @@ fmtRule = do
     useCMake
       (cmakeBuilder "fmt")
         { cmakeFlags = const ["-DFMT_TEST=OFF", "-DFMT_DOC=OFF"],
-          postBuildEachABI = stripLib "lib/libfmt.a" >>> removePkgConfig
+          postBuildEachABI = stripLib "lib/libfmt.a" <> removePkgConfig
         }
   "fmt" ~> buildWithAndroidEnv buildFmt Fmt

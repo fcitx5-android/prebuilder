@@ -8,7 +8,6 @@ module Rules.OpenCC (openccRule) where
 
 import Base
 import CMakeBuilder
-import Control.Arrow ((>>>))
 
 data OpenCC = OpenCC
   deriving stock (Eq, Show, Typeable, Generic)
@@ -23,7 +22,7 @@ openccRule = do
       (cmakeBuilder "opencc")
         { source = const $ pure "OpenCC",
           -- use prebuilt marisa
-          preBuild = \_ src -> cmd_ (Cwd src) Shell "sed -i '213s|find_library(LIBMARISA NAMES marisa)|find_package(marisa)\\nset(LIBMARISA marisa)|' CMakeLists.txt",
+          preBuild = BuildAction $ \_ src -> cmd_ (Cwd src) Shell "sed -i '213s|find_library(LIBMARISA NAMES marisa)|find_package(marisa)\\nset(LIBMARISA marisa)|' CMakeLists.txt",
           cmakeFlags = \BuildEnv {..} ->
             [ "-DSHARE_INSTALL_PREFIX=share",
               "-DINCLUDE_INSTALL_DIR=include",
@@ -41,7 +40,7 @@ openccRule = do
               "-DUSE_SYSTEM_RAPIDJSON=OFF",
               "-DUSE_SYSTEM_TCLAP=OFF"
             ],
-          postBuildEachABI = stripLib "lib/libopencc.a" >>> removePkgConfig >>> removeBin
+          postBuildEachABI = mconcat [stripLib "lib/libopencc.a", removePkgConfig, removeBin]
         }
   "opencc" ~> do
     need ["marisa"]

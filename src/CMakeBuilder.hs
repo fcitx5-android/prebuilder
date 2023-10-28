@@ -4,8 +4,8 @@
 
 module CMakeBuilder
   ( BuildEnv (..),
-    BuildActionABI,
-    BuildAction,
+    BuildActionABI (..),
+    BuildAction (..),
     CmakeBuilder (..),
     cmakeBuilder,
     useCMake,
@@ -32,10 +32,22 @@ data BuildEnv = BuildEnv
   }
 
 -- | Args are key and build env
-type BuildActionABI q = q -> BuildEnv -> Action ()
+newtype BuildActionABI q = BuildActionABI {unBuildActionABI :: q -> BuildEnv -> Action ()}
+
+instance Semigroup (BuildActionABI q) where
+  BuildActionABI a <> BuildActionABI b = BuildActionABI $ \q env -> a q env >> b q env
+
+instance Monoid (BuildActionABI q) where
+  mempty = BuildActionABI $ \_ _ -> pure ()
 
 -- | Args are key and source
-type BuildAction q = q -> FilePath -> Action ()
+newtype BuildAction q = BuildAction {unBuildAction :: q -> FilePath -> Action ()}
+
+instance Semigroup (BuildAction q) where
+  BuildAction a <> BuildAction b = BuildAction $ \q src -> a q src >> b q src
+
+instance Monoid (BuildAction q) where
+  mempty = BuildAction $ \_ _ -> pure ()
 
 data CmakeBuilder q = CmakeBuilder
   { -- | name of the library
@@ -63,11 +75,11 @@ data CmakeBuilder q = CmakeBuilder
 cmakeBuilder :: String -> CmakeBuilder b
 cmakeBuilder name =
   CmakeBuilder
-    { preBuild = \_ _ -> pure (),
-      preBuildEachABI = const $ const $ pure (),
-      postBuildEachABI = const $ const $ pure (),
-      postBuild = \_ _ -> pure (),
-      cmakeFlags = const [],
+    { preBuild = mempty,
+      preBuildEachABI = mempty,
+      postBuildEachABI = mempty,
+      postBuild = mempty,
+      cmakeFlags = mempty,
       source = const $ pure name,
       name = name,
       doInstall = True,
@@ -90,11 +102,11 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
             buildEnvOutPrefix = out </> name </> abi,
             buildEnvBuildDir = out </> name <> "-build-" <> abi
           }
-  preBuild q src
+  unBuildAction preBuild q src
   withAndroidEnv env $ \cmake toolchain ninja _strip abiList ->
     forM_ abiList $ \a -> do
       let bEnv@BuildEnv {..} = buildEnv a
-      preBuildEachABI q bEnv
+      unBuildActionABI preBuildEachABI q bEnv
       cmd_
         (Cwd src)
         cmake
@@ -115,11 +127,11 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
       cmd_ (Cwd src) cmake "--build" buildEnvBuildDir
       when doInstall $
         cmd_ (Cwd src) cmake "--install" buildEnvBuildDir
-      postBuildEachABI q bEnv
-  postBuild q src
+      unBuildActionABI postBuildEachABI q bEnv
+  unBuildAction postBuild q src
 
 stripLib :: FilePath -> BuildActionABI q
-stripLib path _ BuildEnv {..} =
+stripLib path = BuildActionABI $ \_ BuildEnv {..} ->
   cmd_
     (Cwd buildEnvOutPrefix)
     Shell
@@ -128,9 +140,9 @@ stripLib path _ BuildEnv {..} =
     path
 
 removePkgConfig :: BuildActionABI q
-removePkgConfig _ BuildEnv {..} =
+removePkgConfig = BuildActionABI $ \_ BuildEnv {..} ->
   removeFilesAfter buildEnvOutPrefix ["lib/pkgconfig"]
 
 removeBin :: BuildActionABI q
-removeBin _ BuildEnv {..} =
+removeBin = BuildActionABI $ \_ BuildEnv {..} ->
   removeFilesAfter buildEnvOutPrefix ["bin"]

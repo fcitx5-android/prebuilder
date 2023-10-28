@@ -7,7 +7,6 @@ module Rules.LevelDB (leveldbRule) where
 
 import Base
 import CMakeBuilder
-import Control.Arrow ((>>>))
 
 data LevelDB = LevelDB
   deriving stock (Eq, Show, Typeable, Generic)
@@ -26,6 +25,6 @@ leveldbRule = do
                 "-DLEVELDB_BUILD_BENCHMARKS=OFF",
                 "-DLEVELDB_BUILD_TESTS=OFF"
               ],
-          postBuildEachABI = stripLib "lib/libleveldb.a" >>> removePkgConfig
+          postBuildEachABI = stripLib "lib/libleveldb.a" <> removePkgConfig
         }
   "leveldb" ~> buildWithAndroidEnv buildLevelDB LevelDB

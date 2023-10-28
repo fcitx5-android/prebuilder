@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Rules.LibHangul where
@@ -20,7 +19,7 @@ libhangulRule = do
   buildLibhangul <-
     useCMake $
       (cmakeBuilder "libhangul")
-        { preBuild = \_ src -> do
+        { preBuild = BuildAction $ \_ src -> do
             -- disable executable
             cmd_ (Cwd src) Shell "sed -i '53s|add_subdirectory(tools)||' CMakeLists.txt"
             cmd_ (Cwd src) Shell "sed -i '48s|FULL_LOCALEDIR|LOCALEDIR|' hangul/CMakeLists.txt"
