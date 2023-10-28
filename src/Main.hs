@@ -111,7 +111,7 @@ instance A.ToJSON ToolchainVersions where
 getToolchainVersions :: Action ToolchainVersions
 getToolchainVersions = do
   StdoutTrim prebuilderRev <- cmd "git" "rev-parse" "HEAD"
-  AndroidEnv {sdkCmakeVersion = cmakeVersion, platform = platformVersion, ..} <- getAndroidEnv
+  AndroidEnv {sdkCMakeVersion = cmakeVersion, platform = platformVersion, ..} <- getAndroidEnv
   properties <- readFileLines $ ndkRoot </> "source.properties"
   ndkVersion <- case find ("Pkg.Revision" `isPrefixOf`) properties of
     Just line

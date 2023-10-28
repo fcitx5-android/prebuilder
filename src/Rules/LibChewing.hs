@@ -1,12 +1,13 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Rules.LibChewing where
 
 import Base
+import CMakeBuilder
+import Control.Arrow ((>>>))
 
 data LibChewing = LibChewing
   deriving stock (Eq, Show, Typeable, Generic)
@@ -20,39 +21,19 @@ libchewingRule = do
       dictOutputDir = outputDir </> "chewing-dict"
       dictSrcDir = libchewingSrc </> "data"
 
-  buildLibchewing <- addOracle $ \(WithAndroidEnv LibChewing env@AndroidEnv {..}) -> do
-    out <- liftIO $ canonicalizePath outputDir
-    -- CMakeLists is changed in last build
-    cmd_ (Cwd libchewingSrc) Shell "git checkout -- CMakeLists.txt"
-    -- skip data and shared lib
-    -- merge libuserphrase.a into libchewing.a
-    -- remove absolute path by CHEWING_DATADIR macro
-    -- remove absolute path by __FILE__ macro
-    cmd_ (Cwd libchewingSrc) "git apply ../patches/libchewing.patch"
-    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
-      forM_ abiList $ \a -> do
-        let outPrefix = out </> "libchewing" </> a
-        let buildDir = out </> "libchewing-build-" <> a
-        cmd_
-          (Cwd libchewingSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
-          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
-            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
-            "-DANDROID_ABI=" <> a,
-            "-DANDROID_PLATFORM=" <> show platform,
-            "-DANDROID_STL=c++_shared",
-            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DWITH_SQLITE3=OFF"
-          ]
-        cmd_ (Cwd libchewingSrc) cmake "--build" buildDir
-        cmd_ (Cwd libchewingSrc) cmake "--install" buildDir
-        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/libchewing.a"
-        removeFilesAfter outPrefix ["lib/pkgconfig"]
-
+  buildLibchewing <-
+    useCMake $  (cmakeBuilder "libchewing")
+        { cmakeFlags = const ["-DWITH_SQLITE3=OFF"],
+          preBuild = \_ src -> do
+            -- CMakeLists is changed in last build
+            cmd_ (Cwd src) Shell "git checkout -- CMakeLists.txt"
+            -- skip data and shared lib
+            -- merge libuserphrase.a into libchewing.a
+            -- remove absolute path by CHEWING_DATADIR macro
+            -- remove absolute path by __FILE__ macro
+            cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
+          postBuildEachABI = stripLib "lib/libchewing.a" >>> removePkgConfig
+        }
   phony "generateDict" $ do
     cmd_ (Cwd libchewingSrc) "./autogen.sh"
     cmd_ (Cwd libchewingSrc) "./configure --with-sqlite3=no"
@@ -69,5 +50,4 @@ libchewingRule = do
 
   "libchewing" ~> do
     need ["chewing-dict"]
-    env <- getAndroidEnv
-    buildLibchewing $ WithAndroidEnv LibChewing env
+    buildWithAndroidEnv buildLibchewing LibChewing

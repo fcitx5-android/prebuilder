@@ -7,6 +7,8 @@
 module Rules.LibRime where
 
 import Base
+import CMakeBuilder
+import Control.Arrow ((>>>))
 import Data.List.Extra (intercalate)
 
 data LibRime = LibRime
@@ -17,67 +19,50 @@ type instance RuleResult LibRime = ()
 
 librimeRule :: Rules ()
 librimeRule = do
-  buildLibrime <- addOracle $ \(WithAndroidEnv LibRime env@AndroidEnv {..}) -> do
-    let librimeSrc = "librime"
-    -- canocialize for symlink
-    librimeLuaSrc <- liftIO $ canonicalizePath "librime-lua"
-    librimeOctagramSrc <- liftIO $ canonicalizePath "librime-octagram"
-    out <- liftIO $ canonicalizePath outputDir
-    liftIO $ do
-      removePathForcibly (librimeSrc </> "plugins" </> "lua")
-      createDirectoryLink librimeLuaSrc (librimeSrc </> "plugins" </> "lua")
-      removePathForcibly (librimeSrc </> "plugins" </> "octagram")
-      createDirectoryLink librimeOctagramSrc (librimeSrc </> "plugins" </> "octagram")
-    -- use prebuilt lua
-    cmd_ (Cwd (librimeSrc </> "plugins" </> "lua")) Shell "sed -i '11s|^\\s*if(LUA_FOUND)|set(LUA_FOUND 1)\\nset(LUA_INCLUDE_DIRS \"${CMAKE_CURRENT_SOURCE_DIR}/../build/lua/${ANDROID_ABI}/include\")\\n\\0|' CMakeLists.txt"
-    -- remove absolute path by __FILE__ macro
-    cmd_ (Cwd (librimeSrc </> "plugins" </> "lua")) Shell "sed -i '47s|^set(plugin_name.*|target_compile_options(rime-lua-objs PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
-    -- remove absolute path by __FILE__ macro
-    cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i '13s|^set(plugin_name.*|target_compile_options(rime-octagram-objs PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
-    -- remove command line tools
-    cmd_ (Cwd (librimeSrc </> "plugins" </> "octagram")) Shell "sed -i 19{/add_subdirectory\\(tools\\)/d} CMakeLists.txt"
-    -- remove absolute path by __FILE__ macro
-    cmd_ (Cwd librimeSrc) Shell "sed -i '143s|target_link_libraries(rime-static.*|target_compile_options(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' src/CMakeLists.txt"
-    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
-      forM_ abiList $ \a -> do
-        let outPrefix = out </> "librime" </> a
-        let buildDir = out </> "librime-build-" <> a
-        cmd_
-          (Cwd librimeSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
-          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
-            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
-            "-DANDROID_ABI=" <> a,
-            "-DANDROID_PLATFORM=" <> show platform,
-            "-DANDROID_STL=c++_shared",
-            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
-            "-DCMAKE_FIND_ROOT_PATH="
-              <> intercalate
-                ";"
-                ( map
-                    (\x -> out </> x </> a)
-                    [ "boost",
-                      "glog",
-                      "yaml-cpp",
-                      "leveldb",
-                      "marisa",
-                      "opencc"
-                    ]
-                    <> ["."]
-                ),
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DBUILD_SHARED_LIBS=OFF",
-            "-DBUILD_STATIC=ON",
-            "-DBUILD_TEST=OFF",
-            "-DCMAKE_CXX_FLAGS=-DBOOST_DISABLE_CURRENT_LOCATION"
-          ]
-        cmd_ (Cwd librimeSrc) cmake "--build" buildDir
-        cmd_ (Cwd librimeSrc) cmake "--install" buildDir
-        cmd_ (Cwd outPrefix) strip "--strip-unneeded" "lib/librime.a"
-        removeFilesAfter outPrefix ["lib/pkgconfig"]
+  buildLibrime <-
+    useCMake $
+      (cmakeBuilder "librime")
+        { preBuild = \_ src -> do
+            -- canocialize for symlink
+            librimeLuaSrc <- liftIO $ canonicalizePath "librime-lua"
+            librimeOctagramSrc <- liftIO $ canonicalizePath "librime-octagram"
+            liftIO $ do
+              removePathForcibly (src </> "plugins" </> "lua")
+              createDirectoryLink librimeLuaSrc (src </> "plugins" </> "lua")
+              removePathForcibly (src </> "plugins" </> "octagram")
+              createDirectoryLink librimeOctagramSrc (src </> "plugins" </> "octagram")
+            -- use prebuilt lua
+            cmd_ (Cwd (src </> "plugins" </> "lua")) Shell "sed -i '11s|^\\s*if(LUA_FOUND)|set(LUA_FOUND 1)\\nset(LUA_INCLUDE_DIRS \"${CMAKE_CURRENT_SOURCE_DIR}/../build/lua/${ANDROID_ABI}/include\")\\n\\0|' CMakeLists.txt"
+            -- remove absolute path by __FILE__ macro
+            cmd_ (Cwd (src </> "plugins" </> "lua")) Shell "sed -i '47s|^set(plugin_name.*|target_compile_options(rime-lua-objs PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
+            -- remove absolute path by __FILE__ macro
+            cmd_ (Cwd (src </> "plugins" </> "octagram")) Shell "sed -i '13s|^set(plugin_name.*|target_compile_options(rime-octagram-objs PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' CMakeLists.txt"
+            -- remove command line tools
+            cmd_ (Cwd (src </> "plugins" </> "octagram")) Shell "sed -i 19{/add_subdirectory\\(tools\\)/d} CMakeLists.txt"
+            -- remove absolute path by __FILE__ macro
+            cmd_ (Cwd src) Shell "sed -i '143s|target_link_libraries(rime-static.*|target_compile_options(rime-static PRIVATE \"-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.\")\\n\\0|' src/CMakeLists.txt",
+          cmakeFlags = \BuildEnv {..} ->
+            [ "-DBUILD_SHARED_LIBS=OFF",
+              "-DBUILD_STATIC=ON",
+              "-DBUILD_TEST=OFF",
+              "-DCMAKE_CXX_FLAGS=-DBOOST_DISABLE_CURRENT_LOCATION",
+              "-DCMAKE_FIND_ROOT_PATH="
+                <> intercalate
+                  ";"
+                  ( map
+                      (\x -> buildEnvOut </> x </> buildEnvABI)
+                      [ "boost",
+                        "glog",
+                        "yaml-cpp",
+                        "leveldb",
+                        "marisa",
+                        "opencc"
+                      ]
+                      <> ["."]
+                  )
+            ],
+          postBuildEachABI = stripLib "lib/librime.a" >>> removePkgConfig
+        }
   "librime" ~> do
     need
       [ "lua",
@@ -88,5 +73,4 @@ librimeRule = do
         "leveldb",
         "marisa"
       ]
-    env <- getAndroidEnv
-    buildLibrime $ WithAndroidEnv LibRime env
+    buildWithAndroidEnv buildLibrime LibRime

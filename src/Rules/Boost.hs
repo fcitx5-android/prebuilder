@@ -1,12 +1,12 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Rules.Boost (boostRule) where
 
 import Base
+import CMakeBuilder
 import Data.List.Extra (intercalate)
 
 data Boost = Boost
@@ -17,73 +17,57 @@ type instance RuleResult Boost = ()
 
 boostRule :: Rules ()
 boostRule = do
-  buildBoost <- addOracle $ \(WithAndroidEnv Boost env@AndroidEnv {..}) -> do
-    boostVersion <- getConfig' "boost_version"
-    sha256 <- getConfig' "boost_sha256"
-    out <- liftIO $ canonicalizePath outputDir
-    let boostTag = "boost-" <> boostVersion
-        boostTar = boostTag <.> "tar" <.> "xz"
-        boostUrl = "https://github.com/boostorg/boost/releases/download" </> boostTag <> "/"
-    _ <- download boostUrl boostTar sha256
-    cmd_
-      (Cwd outputDir)
-      "tar" "xf" boostTar
-    let boostSrc = out </> boostTag
-    withAndroidEnv env $ \cmake toolchain ninja strip abiList ->
-      forM_ abiList $ \a -> do
-        let outPrefix = out </> "boost" </> a
-        let buildDir = out </> "boost-build-" <> a
-        cmd_
-          (Cwd boostSrc)
-          cmake
-          "-B"
-          buildDir
-          "-GNinja"
-          [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
-            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
-            "-DANDROID_ABI=" <> a,
-            "-DANDROID_PLATFORM=" <> show platform,
-            "-DANDROID_STL=c++_shared",
-            "-DCMAKE_INSTALL_PREFIX=" <> outPrefix,
-            "-DCMAKE_INSTALL_MESSAGE=NEVER",
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DBOOST_EXCLUDE_LIBRARIES="
-              <> intercalate
-                ";"
-                [ "chrono",
-                  "context",
-                  "contract",
-                  "coroutine",
-                  "fiber",
-                  "graph",
-                  "json",
-                  "locale",
-                  "log",
-                  "math",
-                  "nowide",
-                  "program_options",
-                  "serialization",
-                  "stacktrace",
-                  "test",
-                  "thread",
-                  "timer",
-                  "type_erasure",
-                  "url",
-                  "wave",
-                  "wserialization"
-                ],
-            "-DBOOST_INSTALL_LAYOUT=system"
-          ]
-        cmd_ (Cwd boostSrc) cmake "--build" buildDir
-        cmd_ (Cwd boostSrc) cmake "--install" buildDir
-        cmd_ (Cwd outPrefix) Shell strip "--strip-unneeded" "lib/libboost_*.a"
+  buildBoost <-
+    useCMake $
+      (cmakeBuilder "boost")
+        { source = \out -> do
+            boostVersion <- getConfig' "boost_version"
+            sha256 <- getConfig' "boost_sha256"
+            let boostTag = "boost-" <> boostVersion
+                boostTar = boostTag <.> "tar" <.> "xz"
+                boostUrl = "https://github.com/boostorg/boost/releases/download" </> boostTag <> "/"
+            _ <- download boostUrl boostTar sha256
+            cmd_ (Cwd out) "tar" "xf" boostTar
+            pure $ out </> boostTag,
+          cmakeFlags =
+            const
+              [ "-DCMAKE_INSTALL_MESSAGE=NEVER",
+                "-DBOOST_EXCLUDE_LIBRARIES="
+                  <> intercalate
+                    ";"
+                    [ "chrono",
+                      "context",
+                      "contract",
+                      "coroutine",
+                      "fiber",
+                      "graph",
+                      "json",
+                      "locale",
+                      "log",
+                      "math",
+                      "nowide",
+                      "program_options",
+                      "serialization",
+                      "stacktrace",
+                      "test",
+                      "thread",
+                      "timer",
+                      "type_erasure",
+                      "url",
+                      "wave",
+                      "wserialization"
+                    ],
+                "-DBOOST_INSTALL_LAYOUT=system"
+              ],
+          postBuildEachABI = stripLib "lib/libboost_*.a"
+        }
   "boost" ~> do
     env <- getAndroidEnv
     -- since header files are the same regardless of abi
     -- we take a random one
     let abiList = getABIList env
         firstAbi = head abiList
-    buildBoost $ WithAndroidEnv Boost env
+    _ <- buildBoost $ WithAndroidEnv Boost env
     liftIO $ do
       getDirectoryFilesIO
         (outputDir </> "boost" </> firstAbi </> "include" </> "boost")

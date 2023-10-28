@@ -16,10 +16,10 @@ module Base
     downloadFileRule,
     download,
     AndroidEnv (..),
-    getSdkCmake,
+    getSdkCMake,
     getSdkNinja,
     getABIList,
-    getCmakeToolchain,
+    getCMakeToolchain,
     getNdkStrip,
     withAndroidEnv,
     getAndroidEnv,
@@ -28,6 +28,7 @@ module Base
     prebuilderVersion,
     outputDir,
     copyFileAndCreateDir,
+    buildWithAndroidEnv,
   )
 where
 
@@ -99,30 +100,30 @@ download downloadBaseUrl downloadFileName downloadSha256 = outputDir </> downloa
 data AndroidEnv = AndroidEnv
   { sdkRoot :: FilePath,
     ndkRoot :: FilePath,
-    sdkCmakeVersion :: String,
+    sdkCMakeVersion :: String,
     platform :: Int,
     abi :: String
   }
   deriving stock (Eq, Show, Typeable, Generic)
   deriving anyclass (Hashable, Binary, NFData)
 
-getSdkCmake :: AndroidEnv -> FilePath
-getSdkCmake AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCmakeVersion </> "bin" </> "cmake"
+getSdkCMake :: AndroidEnv -> FilePath
+getSdkCMake AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCMakeVersion </> "bin" </> "cmake"
 
 getSdkNinja :: AndroidEnv -> FilePath
-getSdkNinja AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCmakeVersion </> "bin" </> "ninja"
+getSdkNinja AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCMakeVersion </> "bin" </> "ninja"
 
 getABIList :: AndroidEnv -> [String]
 getABIList AndroidEnv {..} = split (== ',') abi
 
-getCmakeToolchain :: AndroidEnv -> FilePath
-getCmakeToolchain AndroidEnv {..} = ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake"
+getCMakeToolchain :: AndroidEnv -> FilePath
+getCMakeToolchain AndroidEnv {..} = ndkRoot </> "build" </> "cmake" </> "android.toolchain.cmake"
 
 getNdkStrip :: AndroidEnv -> FilePath
 getNdkStrip AndroidEnv {..} = ndkRoot </> "toolchains" </> "llvm" </> "prebuilt" </> "linux-x86_64" </> "bin" </> "llvm-strip"
 
 withAndroidEnv :: AndroidEnv -> (FilePath -> FilePath -> FilePath -> FilePath -> [String] -> Action a) -> Action a
-withAndroidEnv env f = f (getSdkCmake env) (getCmakeToolchain env) (getSdkNinja env) (getNdkStrip env) (getABIList env)
+withAndroidEnv env f = f (getSdkCMake env) (getCMakeToolchain env) (getSdkNinja env) (getNdkStrip env) (getABIList env)
 
 getAndroidEnv :: Action AndroidEnv
 getAndroidEnv = do
@@ -130,7 +131,7 @@ getAndroidEnv = do
     fromMaybeM (fail "Both environment variable ANDROID_HOME and ANDROID_SDK_ROOT are unset!") $
       (<|>) <$> getEnv "ANDROID_HOME" <*> getEnv "ANDROID_SDK_ROOT"
   ndkRoot <- env "ANDROID_NDK_ROOT"
-  sdkCmakeVersion <- env "CMAKE_VERSION"
+  sdkCMakeVersion <- env "CMAKE_VERSION"
   platform <- read <$> env "ANDROID_PLATFORM"
   abi <- env "ABI"
   pure AndroidEnv {..}
@@ -145,6 +146,9 @@ instance (Show k) => Show (WithAndroidEnv k) where
   show (WithAndroidEnv k n) = show k <> " (" <> show n <> ")"
 
 type instance RuleResult (WithAndroidEnv k) = RuleResult k
+
+buildWithAndroidEnv :: (WithAndroidEnv k -> Action a) -> k -> Action a
+buildWithAndroidEnv f k = getAndroidEnv >>= f . WithAndroidEnv k
 
 --------------------------------------------------------------------------------
 getConfig' :: String -> Action String
