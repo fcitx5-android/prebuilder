@@ -21,6 +21,7 @@ marisaRule = do
       (cmakeBuilder "marisa")
         { source = const $ pure "marisa-trie",
           preBuild = BuildAction $ \_ src -> cmd_ (Cwd src) Shell "sed -i '52s|install(TARGETS marisa.*|target_compile_options\\(marisa PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\0|' CMakeLists.txt",
-          cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF"]
+          cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF"],
+          postBuildEachABI = stripLib "lib/libmarisa.a"
         }
   "marisa" ~> buildWithAndroidEnv buildMarisa MarisaTrie
