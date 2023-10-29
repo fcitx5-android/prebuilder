@@ -26,6 +26,7 @@ import Rules.LibIME
 import Rules.LibIMEJyutping
 import Rules.LibIntlLite
 import Rules.LibRime
+import Rules.LibThai
 import Rules.Lua
 import Rules.Marisa
 import Rules.OpenCC
@@ -66,6 +67,7 @@ main = do
       librimeRule
       libhangulRule
       libchewingRule
+      libthaiRule
       anthyDictRule
       isInGitHubActionRule
       getOutputDirRule
@@ -90,6 +92,7 @@ main = do
                 "libhangul",
                 "chewing-dict",
                 "libchewing",
+                "libthai",
                 "anthy-dict"
               ]
         need artifacts
