@@ -57,3 +57,6 @@
 [submodule "libime-jyutping"]
 	path = libime-jyutping
 	url = https://github.com/fcitx/libime-jyutping
+[submodule "libthai"]
+	path = libthai
+	url = https://github.com/tlwg/libthai

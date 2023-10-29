@@ -34,3 +34,4 @@ Cabal is required to build this project.
 * librime-octagram: [rime/librime-octagram](https://github.com/lotem/librime-octagram)
 * libhangul: [libhangul/libhangul](https://github.com/libhangul/libhangul)
 * libchewing: [chewing/libchewing](https://github.com/chewing/libchewing)
+* libthai: [tlwg/libthai](https://github.com/tlwg/libthai)
