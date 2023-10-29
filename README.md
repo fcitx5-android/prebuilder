@@ -35,3 +35,4 @@ Cabal is required to build this project.
 * libhangul: [libhangul/libhangul](https://github.com/libhangul/libhangul)
 * libchewing: [chewing/libchewing](https://github.com/chewing/libchewing)
 * libthai: [tlwg/libthai](https://github.com/tlwg/libthai)
+* libiconv: [GNU/libiconv](https://savannah.gnu.org/projects/libiconv)
