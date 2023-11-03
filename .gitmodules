@@ -51,3 +51,9 @@
 [submodule "libchewing"]
 	path = libchewing
 	url = https://github.com/chewing/libchewing
+[submodule "libime"]
+	path = libime
+	url = https://github.com/fcitx/libime
+[submodule "libime-jyutping"]
+	path = libime-jyutping
+	url = https://github.com/fcitx/libime-jyutping
