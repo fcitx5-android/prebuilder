@@ -2,14 +2,12 @@ module Rules.Fcitx5Data (spellDictRule) where
 
 import Base
 
-fcitxDataUrl :: String
-fcitxDataUrl = "https://download.fcitx-im.org/data/"
-
 spellDictRule :: Rules ()
 spellDictRule = do
   outputDir </> "en_dict.txt" %> \out -> do
     src <- getConfig' "en_dict"
     sha256 <- getConfig' "en_dict_sha256"
+    fcitxDataUrl <- getConfig' "fcitx_data_url"
     tar <- download fcitxDataUrl src sha256
     cmd_ "tar" "xf" tar "-C" outputDir (takeFileName out)
   outputDir </> "en_dict.fscd" %> \out -> do

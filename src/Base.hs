@@ -1,9 +1,10 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Base
   ( module Development.Shake,
@@ -29,6 +30,7 @@ module Base
     outputDir,
     copyFileAndCreateDir,
     buildWithAndroidEnv,
+    execute,
   )
 where
 
@@ -38,6 +40,7 @@ import Data.List.Extra (split)
 import Data.Maybe (fromJust)
 import Development.Shake
 import Development.Shake.Classes
+import Development.Shake.Command
 import Development.Shake.Config
 import Development.Shake.FilePath
 import Development.Shake.Rule
@@ -158,3 +161,14 @@ copyFileAndCreateDir :: FilePath -> FilePath -> IO ()
 copyFileAndCreateDir src dst = do
   IO.createDirectoryIfMissing True $ takeDirectory dst
   IO.copyFile src dst
+
+--------------------------------------------------------------------------------
+
+execute :: String -> (CmdArguments args) => args :-> Action ()
+execute tool =
+  cmdArguments
+    ( CmdArgument
+        [ Right (outputDir </> "bin" </> tool),
+          Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "lib"))
+        ]
+    )
