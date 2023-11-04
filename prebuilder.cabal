@@ -31,6 +31,8 @@ executable prebuilder
     Rules.LibChewing
     Rules.LibEvent
     Rules.LibHangul
+    Rules.LibIME
+    Rules.LibIMEJyutping
     Rules.LibIntlLite
     Rules.LibRime
     Rules.Lua

@@ -39,9 +39,17 @@
           export COMP_SPELL_DICT="${fcitx5}/lib/fcitx5/libexec/comp-spell-dict"
         '';
 
-        buildInputs = old.buildInputs
-          ++ [ fcitx5 libime opencc autoconf automake pkg-config libtool check ]
-          ++ prebuilderShell.buildInputs;
+        buildInputs = old.buildInputs ++ [
+          fcitx5
+          opencc
+          autoconf
+          automake
+          pkg-config
+          libtool
+          check
+          zstd
+          boost
+        ] ++ prebuilderShell.buildInputs;
 
         nativeBuildInputs = old.nativeBuildInputs
           ++ prebuilderShell.nativeBuildInputs;

@@ -22,6 +22,8 @@ import Rules.LevelDB
 import Rules.LibChewing
 import Rules.LibEvent
 import Rules.LibHangul
+import Rules.LibIME
+import Rules.LibIMEJyutping
 import Rules.LibIntlLite
 import Rules.LibRime
 import Rules.Lua
@@ -43,8 +45,9 @@ main = do
       usingConfigFile "build.cfg"
       downloadFileRule
       spellDictRule
-      libimeRule
+      libIMERule
       chineseAddonsRule
+      libIMEJyutpingRule
       fmtRule
       libeventRule
       libintlLiteRule
@@ -66,6 +69,7 @@ main = do
                 "libime",
                 "fmt",
                 "chinese-addons-data",
+                "libime-jyutping",
                 "libevent",
                 "libintl-lite",
                 "lua",
