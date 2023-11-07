@@ -55,6 +55,7 @@ main = do
       openccRule
       boostRule
       zstdRule
+      hostLibzstdRule
       glogRule
       yamlCppRule
       leveldbRule

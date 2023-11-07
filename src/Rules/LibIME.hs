@@ -33,6 +33,7 @@ libIMERule = do
 libIMEToolsRule :: Rules ()
 libIMEToolsRule = do
   "libime-tools" ~> do
+    need ["host-libzstd"]
     let libIMESrc = "libime"
     cmd_
       "cmake"
@@ -42,6 +43,7 @@ libIMEToolsRule = do
       "Ninja"
       [ "-DCMAKE_BUILD_TYPE=Release",
         "-DCMAKE_INSTALL_PREFIX=" <> outputDir,
+        "-DCMAKE_PREFIX_PATH=" <> outputDir,
         "-DENABLE_TEST=OFF"
       ]
       libIMESrc

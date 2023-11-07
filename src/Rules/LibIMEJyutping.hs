@@ -15,7 +15,7 @@ libIMEJyutpingRule = do
 jyutpingToolsRule :: Rules ()
 jyutpingToolsRule = do
   "libime-jyutping-tools" ~> do
-    need ["libime-tools"]
+    need ["libime-tools", "host-libzstd"]
     let libIMEJyutpingSrc = "libime-jyutping"
     cmd_
       "cmake"
@@ -25,7 +25,7 @@ jyutpingToolsRule = do
       "Ninja"
       [ "-DCMAKE_BUILD_TYPE=Release",
         "-DCMAKE_INSTALL_PREFIX=" <> outputDir,
-        "-DLibIMECore_DIR=" <> outputDir </> "lib" </> "cmake" </> "LibIMECore",
+        "-DCMAKE_PREFIX_PATH=" <> outputDir,
         "-DENABLE_TEST=OFF",
         "-DENABLE_ENGINE=OFF"
       ]

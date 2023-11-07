@@ -3,7 +3,11 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Rules.ZSTD (zstdRule) where
+module Rules.ZSTD
+  ( zstdRule,
+    hostLibzstdRule
+  )
+where
 
 import Base
 import CMakeBuilder
@@ -31,3 +35,29 @@ zstdRule = do
           postBuildEachABI = stripLib "lib/libzstd.a" <> removePkgConfig
         }
   "zstd" ~> buildWithAndroidEnv buildZSTD ZSTD
+
+hostLibzstdRule :: Rules ()
+hostLibzstdRule = do
+  "host-libzstd" ~> do
+    let zstdSrc = "zstd"
+    cmd_
+      "cmake"
+      "-B"
+      (zstdSrc </> "build-host")
+      "-G"
+      "Ninja"
+      [ "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_INSTALL_PREFIX=" <> outputDir,
+        "-DZSTD_LEGACY_SUPPORT=OFF",
+        "-DZSTD_BUILD_PROGRAMS=OFF",
+        "-DZSTD_BUILD_TESTS=OFF"
+      ]
+      (zstdSrc </> "build" </> "cmake")
+    cmd_
+      "cmake"
+      "--build"
+      (zstdSrc </> "build-host")
+    cmd_
+      "cmake"
+      "--install"
+      (zstdSrc </> "build-host")
