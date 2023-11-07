@@ -17,7 +17,6 @@ jyutpingToolsRule = do
   "libime-jyutping-tools" ~> do
     need ["libime-tools"]
     let libIMEJyutpingSrc = "libime-jyutping"
-    cmd_ "sed" "-i" "46{\\|find_package(Fcitx5Module|d}" (libIMEJyutpingSrc </> "CMakeLists.txt")
     cmd_
       "cmake"
       "-B"
