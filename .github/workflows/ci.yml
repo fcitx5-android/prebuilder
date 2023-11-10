@@ -43,14 +43,30 @@ jobs:
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
           ./build-cabal -j everything
 
+      - name: Check for hardcoded path
+        run: |
+          shopt -s globstar nullglob
+          cd build
+          for TARGET in $(<artifacts.txt)
+          do
+            for FILE in ./"$TARGET"/**/*.a
+            do
+              STRINGS=$(strings --all --bytes=8 "$FILE" | grep prebuilder)
+              if [ -n "${STRINGS}" ]
+              then
+                echo -e "::warning:: Hardcoded path in '$FILE':\n$STRINGS"
+              fi
+            done
+          done
+
       - name: Pack prebuilt libraries
         if: github.event_name == 'pull_request'
         run: |
           cd build
           mkdir prebuilt
-          for file in $(<artifacts.txt)
+          for TARGET in $(<artifacts.txt)
           do
-            cp -a "$file" prebuilt/
+            cp -a "$TARGET" prebuilt/
           done
           tar --zstd -cf prebuilt.tar.zst prebuilt/
 
@@ -73,10 +89,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         working-directory: prebuilt
         run: |
-          for file in $(<../build/artifacts.txt)
+          for TARGET in $(<../build/artifacts.txt)
           do
-            rm -rf "$file"
-            cp -a "../build/$file" ./
+            rm -r "./$TARGET"
+            cp -a "../build/$TARGET" ./
           done
           git remote set-url origin "https://${{ secrets.BOT_TOKEN }}@github.com/fcitx5-android/prebuilt.git"
           git config user.name "Fcitx5 Android Bot"
