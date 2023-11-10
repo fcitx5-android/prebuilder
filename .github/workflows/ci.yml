@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Install build dependencies
         run: |
-          pacman -Syu --needed --noconfirm ghc git unzip haskell-shake haskell-aeson-pretty cmake ninja fmt extra-cmake-modules fcitx5 boost opencc jdk17-openjdk python cabal-install check
+          pacman -Syu --needed --noconfirm ghc git unzip haskell-shake haskell-aeson-pretty cmake ninja fmt extra-cmake-modules fcitx5 boost opencc jdk17-openjdk python cabal-install check binutils
 
       - name: Fetch source code
         uses: actions/checkout@v4
@@ -44,6 +44,7 @@ jobs:
           ./build-cabal -j everything
 
       - name: Check for hardcoded path
+        shell: bash
         run: |
           shopt -s globstar nullglob
           cd build
