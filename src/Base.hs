@@ -191,6 +191,6 @@ isInGitHubAction = askOracle $ IsInGitHubAction ()
 writeGitHubBuildSummary :: [String] -> Action ()
 writeGitHubBuildSummary summary = do
   path <- fromJust <$> getEnv "GITHUB_STEP_SUMMARY"
-  writeFileLines path summary
+  liftIO $ appendFile path $ unlines summary
 
 --------------------------------------------------------------------------------
