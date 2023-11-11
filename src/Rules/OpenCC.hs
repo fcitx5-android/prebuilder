@@ -39,8 +39,7 @@ openccRule = do
               "-DUSE_SYSTEM_PYBIND11=OFF",
               "-DUSE_SYSTEM_RAPIDJSON=OFF",
               "-DUSE_SYSTEM_TCLAP=OFF"
-            ],
-          postBuildEachABI = mconcat [stripLib "lib/libopencc.a", removePkgConfig, removeBin]
+            ]
         }
   "opencc" ~> do
     need ["marisa"]

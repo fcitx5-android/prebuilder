@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 
 module CMakeBuilder
@@ -9,16 +10,15 @@ module CMakeBuilder
     CmakeBuilder (..),
     cmakeBuilder,
     useCMake,
-    stripLib,
-    removePkgConfig,
-    removeBin,
   )
 where
 
 import Base
-import Control.Exception.Extra (Partial)
-import Control.Monad (when)
+import Control.Exception.Extra (Partial, try)
+import Control.Monad (void, when)
 import Data.Maybe (maybeToList)
+import System.Directory.Extra (removeDirectoryRecursive)
+import System.Exit (ExitCode (..))
 
 -- | Environment for running cmake for each abi
 data BuildEnv = BuildEnv
@@ -128,21 +128,23 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
       when doInstall $
         cmd_ (Cwd src) cmake "--install" buildEnvBuildDir
       unBuildActionABI postBuildEachABI q bEnv
+      -- for all binaries
+      libs <- liftIO $ getDirectoryFilesIO buildEnvOutPrefix ["lib/*.a"]
+      forM_ libs $ \lib -> do
+        -- strip
+        cmd_ (Cwd buildEnvOutPrefix) (getNdkStrip buildEnvAndroid) "--strip-unneeded" lib
+        -- detect hardcoded path
+        (Exit c, Stdout result) <- cmd (Cwd buildEnvOutPrefix) Shell "strings --all --bytes=8" lib "| grep prebuilder"
+        when (c == ExitSuccess) $
+          putWarn $
+            "::warning:: Hardcoded paths in '"
+              <> lib
+              <> "':\n"
+              <> result
+        -- remove pkg-config and bin
+        liftIO $
+          void $
+            try @IOError $ do
+              removeDirectoryRecursive $ buildEnvBuildDir </> "lib/pkgconfig"
+              removeDirectoryRecursive $ buildEnvBuildDir </> "bin"
   unBuildAction postBuild q src
-
-stripLib :: FilePath -> BuildActionABI q
-stripLib path = BuildActionABI $ \_ BuildEnv {..} ->
-  cmd_
-    (Cwd buildEnvOutPrefix)
-    Shell
-    (getNdkStrip buildEnvAndroid)
-    "--strip-unneeded"
-    path
-
-removePkgConfig :: BuildActionABI q
-removePkgConfig = BuildActionABI $ \_ BuildEnv {..} ->
-  removeFilesAfter buildEnvOutPrefix ["lib/pkgconfig"]
-
-removeBin :: BuildActionABI q
-removeBin = BuildActionABI $ \_ BuildEnv {..} ->
-  removeFilesAfter buildEnvOutPrefix ["bin"]

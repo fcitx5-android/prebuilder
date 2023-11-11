@@ -24,7 +24,6 @@ leveldbRule = do
               [ "-DBUILD_SHARED_LIBS=OFF",
                 "-DLEVELDB_BUILD_BENCHMARKS=OFF",
                 "-DLEVELDB_BUILD_TESTS=OFF"
-              ],
-          postBuildEachABI = stripLib "lib/libleveldb.a" <> removePkgConfig
+              ]
         }
   "leveldb" ~> buildWithAndroidEnv buildLevelDB LevelDB

@@ -45,26 +45,6 @@ jobs:
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
           ./build-cabal -j everything
 
-      - name: Check for hardcoded path
-        shell: bash
-        run: |
-          shopt -s globstar nullglob
-          # https://stackoverflow.com/a/49627999
-          # "catch exit status 1" grep wrapper
-          c1grep() { grep "$@" || test $? = 1; }
-          cd build
-          for TARGET in $(<artifacts.txt)
-          do
-            for FILE in ./"$TARGET"/**/*.a
-            do
-              STRINGS=$(strings --all --bytes=8 "$FILE" | c1grep prebuilder | c1grep -v grep)
-              if [ -n "${STRINGS}" ]
-              then
-                echo -e "::warning:: Hardcoded path in '$FILE':\n$STRINGS"
-              fi
-            done
-          done
-
       - name: Pack prebuilt libraries
         if: github.event_name == 'pull_request'
         run: |

@@ -58,8 +58,7 @@ boostRule = do
                       "wserialization"
                     ],
                 "-DBOOST_INSTALL_LAYOUT=system"
-              ],
-          postBuildEachABI = stripLib "lib/libboost_*.a"
+              ]
         }
   "boost" ~> do
     env <- getAndroidEnv

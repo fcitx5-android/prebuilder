@@ -31,8 +31,7 @@ libchewingRule = do
             -- merge libuserphrase.a into libchewing.a
             -- remove absolute path by CHEWING_DATADIR macro
             -- remove absolute path by __FILE__ macro
-            cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
-          postBuildEachABI = stripLib "lib/libchewing.a" <> removePkgConfig
+            cmd_ (Cwd src) "git apply ../patches/libchewing.patch"
         }
   phony "generateDict" $ do
     cmd_ (Cwd libchewingSrc) "./autogen.sh"

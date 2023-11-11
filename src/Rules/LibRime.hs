@@ -59,8 +59,7 @@ librimeRule = do
                       ]
                       <> ["."]
                   )
-            ],
-          postBuildEachABI = stripLib "lib/librime.a" <> removePkgConfig
+            ]
         }
   "librime" ~> do
     need
