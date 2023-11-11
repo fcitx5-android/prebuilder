@@ -35,13 +35,16 @@ import Rules.ZSTD
 --------------------------------------------------------------------------------
 main :: IO ()
 main = do
-  shakeArgs
+  -- don't use shakeArgs since it applies withoutActions on our rule
+  shakeArgsWith
     shakeOptions
       { shakeReport = ["report.html"],
         shakeVersion = prebuilderVersion,
         shakeFiles = outputDir
       }
-    $ do
+    []
+    $ \_ files -> pure . Just $ do
+      want files
       usingConfigFile "build.cfg"
       downloadFileRule
       spellDictRule

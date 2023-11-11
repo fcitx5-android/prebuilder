@@ -187,10 +187,10 @@ isInGitHubActionRule = void $ addOracle $ \(IsInGitHubAction _) -> isJust <$> ge
 isInGitHubAction :: Action Bool
 isInGitHubAction = askOracle $ IsInGitHubAction ()
 
--- Check if we are in GitHub Actions before writing the summary
+-- Note: Check if we are in GitHub Actions before using this function.
 writeGitHubBuildSummary :: [String] -> Action ()
 writeGitHubBuildSummary summary = do
   path <- fromJust <$> getEnv "GITHUB_STEP_SUMMARY"
-  liftIO $ appendFile path $ unlines summary
+  writeFileLines path summary
 
 --------------------------------------------------------------------------------

@@ -138,7 +138,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
         when (c == ExitSuccess) $ do
           github <- isInGitHubAction
           if github
-            then writeGitHubBuildSummary ["* Hardcoded path in `" <> lib <> "`:", "```", result, "```"]
+            then writeGitHubBuildSummary ["* Hardcoded pathS in `" <> lib <> "`:", "```", result, "```"]
             else
               putWarn $
                 "Hardcoded paths in '"
@@ -147,8 +147,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
                   <> result
         -- remove pkg-config and bin
         liftIO $
-          void $
-            try @IOError $ do
-              removeDirectoryRecursive $ buildEnvBuildDir </> "lib/pkgconfig"
-              removeDirectoryRecursive $ buildEnvBuildDir </> "bin"
+          do
+            void $ try @IOError $ removeDirectoryRecursive $ buildEnvOutPrefix </> "lib/pkgconfig"
+            void $ try @IOError $ removeDirectoryRecursive $ buildEnvOutPrefix </> "bin"
   unBuildAction postBuild q src
