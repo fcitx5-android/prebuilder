@@ -20,7 +20,7 @@ jobs:
         run: |
           pacman -Syu --needed --noconfirm \
             git unzip ghc cabal-install haskell-shake haskell-aeson-pretty \
-            cmake extra-cmake-modules ninja fmt fcitx5 boost opencc jdk17-openjdk check
+            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jdk17-openjdk check
 
       - name: Fetch source code
         uses: actions/checkout@v4
