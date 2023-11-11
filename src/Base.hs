@@ -31,13 +31,16 @@ module Base
     copyFileAndCreateDir,
     buildWithAndroidEnv,
     execute,
+    isInGitHubActionRule,
+    isInGitHubAction,
+    writeGitHubBuildSummary,
   )
 where
 
 import Control.Applicative ((<|>))
-import Control.Monad.Extra (forM_, fromMaybeM, whenM)
+import Control.Monad.Extra (forM_, fromMaybeM, void, whenM)
 import Data.List.Extra (split)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isJust)
 import Development.Shake
 import Development.Shake.Classes
 import Development.Shake.Command
@@ -172,3 +175,22 @@ execute tool =
           Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "lib"))
         ]
     )
+
+newtype IsInGitHubAction = IsInGitHubAction ()
+  deriving (Generic, Show, Typeable, Eq, Hashable, Binary, NFData)
+
+type instance RuleResult IsInGitHubAction = Bool
+
+isInGitHubActionRule :: Rules ()
+isInGitHubActionRule = void $ addOracle $ \(IsInGitHubAction _) -> isJust <$> getEnv "GITHUB_ACTIONS"
+
+isInGitHubAction :: Action Bool
+isInGitHubAction = askOracle $ IsInGitHubAction ()
+
+-- Check if we are in GitHub Actions before writing the summary
+writeGitHubBuildSummary :: [String] -> Action ()
+writeGitHubBuildSummary summary = do
+  path <- fromJust <$> getEnv "GITHUB_STEP_SUMMARY"
+  liftIO $ appendFile path $ unlines summary
+
+--------------------------------------------------------------------------------

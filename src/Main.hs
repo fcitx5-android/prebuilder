@@ -64,6 +64,7 @@ main = do
       libhangulRule
       libchewingRule
       anthyDictRule
+      isInGitHubActionRule
       "everything" ~> do
         let artifacts =
               [ "spell-dict",
@@ -94,6 +95,10 @@ main = do
         removeFilesAfter outputDir ["//*"]
         cmd_ "git" "submodule" "foreach" "--recursive" "git" "reset" "--hard"
         cmd_ "git" "submodule" "foreach" "--recursive" "git" "clean" "-x" "-f" "-d"
+
+      action $
+        whenM isInGitHubAction $
+          writeGitHubBuildSummary ["{markdown content}", "### Build Summary :rocket:"]
 
 --------------------------------------------------------------------------------
 

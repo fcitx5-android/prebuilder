@@ -15,7 +15,7 @@ where
 
 import Base
 import Control.Exception.Extra (Partial, try)
-import Control.Monad (void, when)
+import Control.Monad (when)
 import Data.Maybe (maybeToList)
 import System.Directory.Extra (removeDirectoryRecursive)
 import System.Exit (ExitCode (..))
@@ -135,12 +135,16 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
         cmd_ (Cwd buildEnvOutPrefix) (getNdkStrip buildEnvAndroid) "--strip-unneeded" lib
         -- detect hardcoded path
         (Exit c, Stdout result) <- cmd (Cwd buildEnvOutPrefix) Shell "strings --all --bytes=8" lib "| grep prebuilder"
-        when (c == ExitSuccess) $
-          putWarn $
-            "::warning:: Hardcoded paths in '"
-              <> lib
-              <> "':\n"
-              <> result
+        when (c == ExitSuccess) $ do
+          github <- isInGitHubAction
+          if github
+            then writeGitHubBuildSummary ["* Hardcoded path in `" <> lib <> "`:", "```", result, "```"]
+            else
+              putWarn $
+                "Hardcoded paths in '"
+                  <> lib
+                  <> "':\n"
+                  <> result
         -- remove pkg-config and bin
         liftIO $
           void $
