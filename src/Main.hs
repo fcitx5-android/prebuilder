@@ -101,7 +101,7 @@ main = do
 
       action $
         whenM isInGitHubAction $
-          writeGitHubBuildSummary ["{markdown content}", "### Build Summary :rocket:"]
+          writeGitHubBuildSummary ["### Build Summary :rocket:"]
 
 --------------------------------------------------------------------------------
 

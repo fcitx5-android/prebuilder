@@ -138,7 +138,18 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
         when (c == ExitSuccess) $ do
           github <- isInGitHubAction
           if github
-            then writeGitHubBuildSummary ["* Hardcoded paths in `" <> lib <> "`:", "```", result, "```"]
+            then
+              writeGitHubBuildSummary 
+                [ "* Hardcoded paths in `" <> lib <> "`:",
+                  "<details>",
+                  "<summary><strong>(expand for details)</strong></summary>"
+                  "\n",
+                  "```",
+                  result,
+                  "```"
+                  "\n",
+                  "</details>"
+                ]
             else
               putWarn $
                 "Hardcoded paths in '"
