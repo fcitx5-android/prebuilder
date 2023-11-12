@@ -142,11 +142,11 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
               writeGitHubBuildSummary 
                 [ "* Hardcoded paths in `" <> lib <> "`:",
                   "<details>",
-                  "<summary><strong>(expand for details)</strong></summary>"
+                  "<summary><strong>(expand for details)</strong></summary>",
                   "\n",
                   "```",
                   result,
-                  "```"
+                  "```",
                   "\n",
                   "</details>"
                 ]
