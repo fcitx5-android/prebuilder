@@ -135,14 +135,15 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
         cmd_ (Cwd buildEnvOutPrefix) (getNdkStrip buildEnvAndroid) "--strip-unneeded" lib
         -- detect hardcoded path
         (Exit c, Stdout result) <- cmd (Cwd buildEnvOutPrefix) Shell "strings --all --bytes=8" lib "| grep prebuilder"
+        let libPath = makeRelative out (buildEnvOutPrefix </> lib)
         when (c == ExitSuccess) $ do
           github <- isInGitHubAction
           if github
             then
               writeGitHubBuildSummary 
-                [ "#### Hardcoded paths in `" <> buildEnvOutPrefix </> lib <> "`:",
+                [ "Hardcoded paths in `" <> libPath <> "`:",
                   "<details>",
-                  "<summary><strong>(expand for details)</strong></summary>",
+                  "<summary>(expand for details)</summary>",
                   "\n",
                   "```",
                   result,
@@ -154,7 +155,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
             else
               putWarn $
                 "Hardcoded paths in '"
-                  <> lib
+                  <> libPath
                   <> "':\n"
                   <> result
         -- remove pkg-config and bin
