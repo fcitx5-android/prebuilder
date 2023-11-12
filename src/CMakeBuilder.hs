@@ -129,7 +129,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
         cmd_ (Cwd src) cmake "--install" buildEnvBuildDir
       unBuildActionABI postBuildEachABI q bEnv
       -- for all binaries
-      libs <- liftIO $ getDirectoryFilesIO buildEnvOutPrefix ["lib/*.a"]
+      libs <- liftIO $ getDirectoryFilesIO buildEnvOutPrefix ["//*.a"]
       forM_ libs $ \lib -> do
         -- strip
         cmd_ (Cwd buildEnvOutPrefix) (getNdkStrip buildEnvAndroid) "--strip-unneeded" lib
@@ -140,7 +140,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
           if github
             then
               writeGitHubBuildSummary 
-                [ "#### Hardcoded paths in `" <> lib <> "`:",
+                [ "#### Hardcoded paths in `" <> buildEnvOutPrefix </> lib <> "`:",
                   "<details>",
                   "<summary><strong>(expand for details)</strong></summary>",
                   "\n",
