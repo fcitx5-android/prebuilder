@@ -140,7 +140,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
           if github
             then
               writeGitHubBuildSummary 
-                [ "* Hardcoded paths in `" <> lib <> "`:",
+                [ "#### Hardcoded paths in `" <> lib <> "`:",
                   "<details>",
                   "<summary><strong>(expand for details)</strong></summary>",
                   "\n",
@@ -148,7 +148,8 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
                   result,
                   "```",
                   "\n",
-                  "</details>"
+                  "</details>",
+                  "\n"
                 ]
             else
               putWarn $
