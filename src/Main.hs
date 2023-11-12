@@ -68,6 +68,7 @@ main = do
       libchewingRule
       anthyDictRule
       isInGitHubActionRule
+      getOutputDirRule
       "everything" ~> do
         let artifacts =
               [ "spell-dict",

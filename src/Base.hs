@@ -34,6 +34,8 @@ module Base
     isInGitHubActionRule,
     isInGitHubAction,
     writeGitHubBuildSummary,
+    getOutputDirRule,
+    getOutputDir,
   )
 where
 
@@ -192,5 +194,18 @@ writeGitHubBuildSummary :: [String] -> Action ()
 writeGitHubBuildSummary summary = do
   path <- fromJust <$> getEnv "GITHUB_STEP_SUMMARY"
   liftIO $ appendFile path $ unlines summary
+
+--------------------------------------------------------------------------------
+
+newtype GetOutputDir = GetOutputDir ()
+  deriving (Generic, Show, Typeable, Eq, Hashable, Binary, NFData)
+
+type instance RuleResult GetOutputDir = FilePath
+
+getOutputDirRule :: Rules ()
+getOutputDirRule = void $ addOracle $ \(GetOutputDir _) -> liftIO $ canonicalizePath outputDir
+
+getOutputDir :: Action FilePath
+getOutputDir = askOracle $ GetOutputDir ()
 
 --------------------------------------------------------------------------------

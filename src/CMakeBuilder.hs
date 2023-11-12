@@ -91,7 +91,7 @@ useCMake ::
   CmakeBuilder q' ->
   Rules (q -> Action a)
 useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
-  out <- liftIO $ canonicalizePath outputDir
+  out <- getOutputDir
   src <- source out
   let buildEnv abi =
         BuildEnv
@@ -140,7 +140,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
           github <- isInGitHubAction
           if github
             then
-              writeGitHubBuildSummary 
+              writeGitHubBuildSummary
                 [ "Hardcoded paths in `" <> libPath <> "`:",
                   "<details>",
                   "<summary>(expand for details)</summary>",
