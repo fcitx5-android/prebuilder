@@ -2,9 +2,9 @@
 	path = fmt
 	url = https://github.com/fmtlib/fmt
 	ignore = untracked
-[submodule "libevent"]
-	path = libevent
-	url = https://github.com/libevent/libevent
+[submodule "libuv"]
+	path = libuv
+	url = https://github.com/libuv/libuv
 	ignore = untracked
 [submodule "libintl-lite"]
 	path = libintl-lite
