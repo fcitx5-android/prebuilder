@@ -25,7 +25,6 @@ yamlCppRule = do
                 "-DYAML_CPP_BUILD_CONTRIB=OFF",
                 "-DYAML_CPP_BUILD_TESTS=OFF",
                 "-DYAML_CPP_BUILD_TOOLS=OFF"
-              ],
-          postBuildEachABI = stripLib "lib/libyaml-cpp.a" <> removePkgConfig
+              ]
         }
   "yaml-cpp" ~> buildWithAndroidEnv buildYamlCpp YamlCpp

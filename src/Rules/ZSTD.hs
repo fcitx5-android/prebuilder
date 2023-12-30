@@ -5,7 +5,7 @@
 
 module Rules.ZSTD
   ( zstdRule,
-    hostLibzstdRule
+    hostLibzstdRule,
   )
 where
 
@@ -31,8 +31,7 @@ zstdRule = do
                 "-DZSTD_BUILD_PROGRAMS=OFF",
                 "-DZSTD_BUILD_TESTS=OFF",
                 "-DZSTD_BUILD_SHARED=OFF"
-              ],
-          postBuildEachABI = stripLib "lib/libzstd.a" <> removePkgConfig
+              ]
         }
   "zstd" ~> buildWithAndroidEnv buildZSTD ZSTD
 

@@ -24,8 +24,7 @@ libhangulRule = do
             cmd_ (Cwd src) Shell "sed -i '53s|add_subdirectory(tools)||' CMakeLists.txt"
             cmd_ (Cwd src) Shell "sed -i '48s|FULL_LOCALEDIR|LOCALEDIR|' hangul/CMakeLists.txt"
             cmd_ (Cwd src) Shell "sed -i '49,50s|FULL_DATADIR|DATADIR|' hangul/CMakeLists.txt",
-          cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF", "-DENABLE_EXTERNAL_KEYBOARDS=OFF"],
-          postBuildEachABI = stripLib "lib/libhangul.a"
+          cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF", "-DENABLE_EXTERNAL_KEYBOARDS=OFF"]
         }
   "libhangul" ~> do
     env <- getAndroidEnv

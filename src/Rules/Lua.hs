@@ -27,7 +27,6 @@ luaRule = do
                 "-DLUA_ENABLE_SHARED=OFF",
                 "-DLUA_ENABLE_TESTING=OFF",
                 "-DLUA_SUPPORT_DL=ON"
-              ],
-          postBuildEachABI = stripLib "lib/liblua_static.a"
+              ]
         }
   "lua" ~> buildWithAndroidEnv buildLua Lua

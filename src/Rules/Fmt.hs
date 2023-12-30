@@ -19,7 +19,6 @@ fmtRule = do
   buildFmt <-
     useCMake
       (cmakeBuilder "fmt")
-        { cmakeFlags = const ["-DFMT_TEST=OFF", "-DFMT_DOC=OFF"],
-          postBuildEachABI = stripLib "lib/libfmt.a" <> removePkgConfig
+        { cmakeFlags = const ["-DFMT_TEST=OFF", "-DFMT_DOC=OFF"]
         }
   "fmt" ~> buildWithAndroidEnv buildFmt Fmt

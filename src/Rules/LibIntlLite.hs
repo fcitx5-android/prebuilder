@@ -19,7 +19,6 @@ libintlLiteRule = do
   buildLibintlLite <-
     useCMake $
       (cmakeBuilder "libintl-lite")
-        { cmakeFlags = const ["-DENABLE_NLS=OFF"],
-          postBuildEachABI = stripLib "lib/libintl.a"
+        { cmakeFlags = const ["-DENABLE_NLS=OFF"]
         }
   "libintl-lite" ~> buildWithAndroidEnv buildLibintlLite LibIntlLite

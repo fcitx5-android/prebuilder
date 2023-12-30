@@ -48,8 +48,7 @@ libeventRule = do
                     let cmake = getSdkCMake buildEnvAndroid
                     -- avoid void installing pkgconf files and python scripts
                     cmd_ (Cwd buildEnvSrc) cmake "--install" buildEnvBuildDir "--component" "lib"
-                    cmd_ (Cwd buildEnvSrc) cmake "--install" buildEnvBuildDir "--component" "dev",
-                stripLib "lib/libevent*.a"
+                    cmd_ (Cwd buildEnvSrc) cmake "--install" buildEnvBuildDir "--component" "dev"
               ]
         }
   "libevent" ~> buildWithAndroidEnv buildLibevent LibEvent
