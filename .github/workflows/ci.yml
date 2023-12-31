@@ -75,9 +75,9 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         working-directory: prebuilt
         run: |
+          rm -r ./*
           for TARGET in $(<../build/artifacts.txt)
           do
-            rm -r "./$TARGET"
             cp -a "../build/$TARGET" ./
           done
           git remote set-url origin "https://${{ secrets.BOT_TOKEN }}@github.com/fcitx5-android/prebuilt.git"
