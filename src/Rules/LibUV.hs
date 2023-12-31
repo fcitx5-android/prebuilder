@@ -25,6 +25,9 @@ libuvRule = do
               [ "-DLIBUV_BUILD_SHARED=OFF",
                 "-DLIBUV_BUILD_TESTS=OFF",
                 "-DLIBUV_BUILD_BENCH=OFF"
-              ]
+              ],
+          preBuild = BuildAction $ \_ src -> do
+            -- revive support for android api level 21
+            cmd_ (Cwd src) "git apply ../patches/libuv.patch"
         }
   "libuv" ~> buildWithAndroidEnv buildlibuv LibUV
