@@ -114,6 +114,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
         buildEnvBuildDir
         "-GNinja"
         ( [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF",
             "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show (platform env),
