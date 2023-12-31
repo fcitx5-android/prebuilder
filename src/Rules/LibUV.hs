@@ -4,16 +4,16 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Rules.Libuv (libuvRule) where
+module Rules.LibUV (libuvRule) where
 
 import Base
 import CMakeBuilder
 
-data Libuv = Libuv
+data LibUV = LibUV
   deriving stock (Eq, Show, Typeable, Generic)
   deriving anyclass (Hashable, Binary, NFData)
 
-type instance RuleResult Libuv = ()
+type instance RuleResult LibUV = ()
 
 libuvRule :: Rules ()
 libuvRule = do
@@ -27,4 +27,4 @@ libuvRule = do
                 "-DLIBUV_BUILD_BENCH=OFF"
               ]
         }
-  "libuv" ~> buildWithAndroidEnv buildlibuv Libuv
+  "libuv" ~> buildWithAndroidEnv buildlibuv LibUV

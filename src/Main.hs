@@ -20,7 +20,7 @@ import Rules.Fmt
 import Rules.GLog
 import Rules.LevelDB
 import Rules.LibChewing
-import Rules.Libuv
+import Rules.LibUV
 import Rules.LibHangul
 import Rules.LibIME
 import Rules.LibIMEJyutping
