@@ -20,7 +20,7 @@ import Rules.Fmt
 import Rules.GLog
 import Rules.LevelDB
 import Rules.LibChewing
-import Rules.LibEvent
+import Rules.LibUV
 import Rules.LibHangul
 import Rules.LibIME
 import Rules.LibIMEJyutping
@@ -52,7 +52,7 @@ main = do
       chineseAddonsRule
       libIMEJyutpingRule
       fmtRule
-      libeventRule
+      libuvRule
       libintlLiteRule
       luaRule
       openccRule
@@ -76,7 +76,7 @@ main = do
                 "fmt",
                 "chinese-addons-data",
                 "libime-jyutping",
-                "libevent",
+                "libuv",
                 "libintl-lite",
                 "lua",
                 "opencc",

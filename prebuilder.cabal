@@ -29,7 +29,7 @@ executable prebuilder
     Rules.GLog
     Rules.LevelDB
     Rules.LibChewing
-    Rules.LibEvent
+    Rules.LibUV
     Rules.LibHangul
     Rules.LibIME
     Rules.LibIMEJyutping
