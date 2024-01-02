@@ -1,0 +1,93 @@
+From 74059677f94d30a61599972a92ee8432fe23705e Mon Sep 17 00:00:00 2001
+From: Rocka <i@rocka.me>
+Date: Tue, 2 Jan 2024 21:21:15 +0800
+Subject: [PATCH 1/2] set file-prefix-map to relative path
+
+---
+ CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 846b444..72a2a6c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -614,6 +614,7 @@ add_library (glogbase OBJECT
+   ${_glog_BINARY_CMake_MODULES}
+   ${GLOG_SRCS}
+ )
++target_compile_options (glogbase PRIVATE "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.")
+ 
+ add_library (glog
+   $<TARGET_OBJECTS:glogbase>
+-- 
+2.43.0
+
+
+From 8c6889292378671482c77d37101cea14a5aa995a Mon Sep 17 00:00:00 2001
+From: Rocka <i@rocka.me>
+Date: Tue, 2 Jan 2024 21:21:57 +0800
+Subject: [PATCH 2/2] always write to logcat on Android
+
+---
+ src/logging.cc | 31 ++++++++++++-------------------
+ 1 file changed, 12 insertions(+), 19 deletions(-)
+
+diff --git a/src/logging.cc b/src/logging.cc
+index 4028ccc..da4ed79 100644
+--- a/src/logging.cc
++++ b/src/logging.cc
+@@ -814,19 +814,6 @@ inline void LogDestination::MaybeLogToStderr(LogSeverity severity,
+     (void) prefix_len;
+     // On Windows, also output to the debugger
+     ::OutputDebugStringA(message);
+-#elif defined(__ANDROID__)
+-    // On Android, also output to logcat
+-    const int android_log_levels[NUM_SEVERITIES] = {
+-      ANDROID_LOG_INFO,
+-      ANDROID_LOG_WARN,
+-      ANDROID_LOG_ERROR,
+-      ANDROID_LOG_FATAL,
+-    };
+-    __android_log_write(android_log_levels[severity],
+-                        glog_internal_namespace_::ProgramInvocationShortName(),
+-                        message + prefix_len);
+-#else
+-    (void) prefix_len;
+ #endif
+   }
+ }
+@@ -1872,6 +1859,18 @@ void LogMessage::SendToLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
+                                 - data_->num_prefix_chars_ - 1) );
+     // NOTE: -1 removes trailing \n
+   }
++#ifdef __ANDROID__
++  // Always write to logcat on Android
++  const int android_log_levels[NUM_SEVERITIES] = {
++    ANDROID_LOG_INFO,
++    ANDROID_LOG_WARN,
++    ANDROID_LOG_ERROR,
++    ANDROID_LOG_FATAL,
++  };
++  __android_log_write(android_log_levels[data_->severity_],
++                      glog_internal_namespace_::ProgramInvocationShortName(),
++                      data_->message_text_ + data_->num_prefix_chars_);
++#endif
+ 
+   // If we log a FATAL message, flush all the log destinations, then toss
+   // a signal for others to catch. We leave the logs in a state that
+@@ -1911,12 +1910,6 @@ void LogMessage::SendToLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
+     if (write(STDERR_FILENO, message, strlen(message)) < 0) {
+       // Ignore errors.
+     }
+-#if defined(__ANDROID__)
+-    // ANDROID_LOG_FATAL as this message is of FATAL severity.
+-    __android_log_write(ANDROID_LOG_FATAL,
+-                        glog_internal_namespace_::ProgramInvocationShortName(),
+-                        message);
+-#endif
+     Fail();
+   }
+ }
+-- 
+2.43.0
+

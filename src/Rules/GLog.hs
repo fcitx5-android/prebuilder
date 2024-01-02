@@ -19,8 +19,16 @@ glogRule = do
   buildGlog <-
     useCMake $
       (cmakeBuilder "glog")
-        { cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF", "-DWITH_GFLAGS=OFF", "-DWITH_UNWIND=OFF", "-DBUILD_TESTING=OFF"],
-          -- remove absolute path by __FILE__ macro
-          preBuild = BuildAction $ \_ src -> cmd_ (Cwd src) Shell "sed -i '618s|\\(^add_library (glog.*\\)|target_compile_options\\(glogbase PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\"\\)\\n\\1|' CMakeLists.txt"
+        { cmakeFlags =
+            const
+              [ "-DBUILD_SHARED_LIBS=OFF",
+                "-DWITH_GFLAGS=OFF",
+                "-DWITH_UNWIND=OFF",
+                "-DBUILD_TESTING=OFF"
+              ],
+          preBuild = BuildAction $ \_ src -> do
+            cmd_ (Cwd src) "git checkout ."
+            -- remove absolute path by __FILE__ macro; always write to logcat
+            cmd_ (Cwd src) "git apply ../patches/glog.patch"
         }
   "glog" ~> buildWithAndroidEnv buildGlog GLog
