@@ -1,7 +1,7 @@
 From eee6a8ad7e8d55901669e320b33fc55bab0d0bc1 Mon Sep 17 00:00:00 2001
 From: Rocka <i@rocka.me>
 Date: Tue, 2 Jan 2024 22:20:22 +0800
-Subject: [PATCH 1/2] try find lua with find_package() first
+Subject: [PATCH 1/2] try find lua with find_package
 
 ---
  CMakeLists.txt | 6 +++++-
@@ -11,22 +11,18 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index ff75973..2a33c82 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1,10 +1,14 @@
- if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lua5.4/lua.h")
-+  find_package(Lua)
-+  if(LUA_FOUND)
-+    set(LUA_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
-+  endif()
-   find_package(PkgConfig)
-   if(PkgConfig_FOUND)
-     foreach(pkg lua lua54 lua53 lua52 luajit lua51)
-       pkg_check_modules(LUA ${pkg})
-       if(LUA_FOUND)
--	break()
-+        break()
+@@ -8,6 +8,11 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lua5.4/lua.h")
        endif()
      endforeach()
    endif()
++  find_package(Lua CONFIG)
++  if(Lua_FOUND)
++    set(LUA_FOUND TRUE)
++    set(LUA_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
++  endif()
+   if(LUA_FOUND)
+     include_directories(${LUA_INCLUDE_DIRS})
+   else()
 -- 
 2.43.0
 
