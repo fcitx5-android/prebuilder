@@ -1,0 +1,57 @@
+From eee6a8ad7e8d55901669e320b33fc55bab0d0bc1 Mon Sep 17 00:00:00 2001
+From: Rocka <i@rocka.me>
+Date: Tue, 2 Jan 2024 22:20:22 +0800
+Subject: [PATCH 1/2] try find lua with find_package() first
+
+---
+ CMakeLists.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ff75973..2a33c82 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,10 +1,14 @@
+ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lua5.4/lua.h")
++  find_package(Lua)
++  if(LUA_FOUND)
++    set(LUA_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
++  endif()
+   find_package(PkgConfig)
+   if(PkgConfig_FOUND)
+     foreach(pkg lua lua54 lua53 lua52 luajit lua51)
+       pkg_check_modules(LUA ${pkg})
+       if(LUA_FOUND)
+-	break()
++        break()
+       endif()
+     endforeach()
+   endif()
+-- 
+2.43.0
+
+
+From f6772b279762dfa949e9462d903426cfa6d6f259 Mon Sep 17 00:00:00 2001
+From: Rocka <i@rocka.me>
+Date: Tue, 2 Jan 2024 22:20:42 +0800
+Subject: [PATCH 2/2] set file-prefix-map to relative path
+
+---
+ CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2a33c82..bd658fa 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -42,6 +42,7 @@ aux_source_directory(src RIME_LUA_SRC)
+ aux_source_directory(src/lib RIME_LUA_LIB_SRC)
+ 
+ add_library(rime-lua-objs OBJECT ${RIME_LUA_SRC} ${RIME_LUA_LIB_SRC} ${LUA_SRC})
++target_compile_options(rime-lua-objs PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+ if(BUILD_SHARED_LIBS)
+   set_target_properties(rime-lua-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
+ endif()
+-- 
+2.43.0
+
