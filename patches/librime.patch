@@ -11,11 +11,12 @@ diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
 index 6364e1c8..347107f0 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -143,6 +143,7 @@ if(BUILD_SHARED_LIBS)
+@@ -143,6 +143,8 @@ if(BUILD_SHARED_LIBS)
  else()
    add_library(rime-static STATIC ${rime_src})
    target_link_libraries(rime-static ${rime_deps})
 +  target_compile_options(rime-static PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
++  target_compile_definitions(rime-static PRIVATE BOOST_DISABLE_CURRENT_LOCATION)
    set_target_properties(rime-static PROPERTIES OUTPUT_NAME "rime" PREFIX "lib")
    install(TARGETS rime-static DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
  endif()

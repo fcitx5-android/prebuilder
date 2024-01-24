@@ -44,7 +44,6 @@ librimeRule = do
               "-DBUILD_STATIC=ON",
               "-DBUILD_TEST=OFF",
               "-DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF",
-              "-DCMAKE_CXX_FLAGS=-DBOOST_DISABLE_CURRENT_LOCATION",
               "-DCMAKE_FIND_ROOT_PATH="
                 <> intercalate
                   ";"
