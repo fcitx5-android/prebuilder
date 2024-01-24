@@ -43,7 +43,6 @@ librimeRule = do
             [ "-DBUILD_SHARED_LIBS=OFF",
               "-DBUILD_STATIC=ON",
               "-DBUILD_TEST=OFF",
-              "-DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF",
               "-DCMAKE_FIND_ROOT_PATH="
                 <> intercalate
                   ";"
