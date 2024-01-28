@@ -1,0 +1,26 @@
+24c24
+< extern @DLL_VARIABLE@ int _libiconv_version; /* Likewise */
+---
+> extern  int _libiconv_version; /* Likewise */
+58c58
+< #define EILSEQ @EILSEQ@
+---
+> #define EILSEQ 
+82c82
+< extern size_t iconv (iconv_t cd, @ICONV_CONST@ char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
+---
+> extern size_t iconv (iconv_t cd,  char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
+100,101c100,101
+< #if @USE_MBSTATE_T@
+< #if @BROKEN_WCHAR_H@
+---
+> #if 1
+> #if 0
+121c121
+< #if @USE_MBSTATE_T@
+---
+> #if 1
+168c168
+< #if @HAVE_WCHAR_T@
+---
+> #if 1
