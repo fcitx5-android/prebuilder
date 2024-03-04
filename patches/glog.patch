@@ -1,0 +1,25 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b787631..1fc8cf4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -402,6 +402,7 @@ add_custom_command (
+   COMMAND ${CMAKE_COMMAND} -E touch ${_glog_EMPTY_SOURCE}
+ )
+ 
++target_compile_options(glog_internal PRIVATE "-ffile-prefix-map==.")
+ add_library (glog
+   $<TARGET_OBJECTS:glog_internal>
+   ${_glog_EMPTY_SOURCE}
+diff --git a/src/logging.cc b/src/logging.cc
+index fc63995..583535a 100644
+--- a/src/logging.cc
++++ b/src/logging.cc
+@@ -2411,7 +2411,7 @@ const vector<string>& GetLoggingDirectories() {
+       if (GetWindowsDirectoryA(tmp, MAX_PATH))
+         logging_directories_list->push_back(tmp);
+       logging_directories_list->push_back(".\\");
+-#else
++#elif !defined(__ANDROID__)
+       logging_directories_list->push_back("./");
+ #endif
+     }
