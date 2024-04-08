@@ -11,15 +11,15 @@ diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
 index 6364e1c8..347107f0 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -143,6 +143,8 @@ if(BUILD_SHARED_LIBS)
+@@ -162,6 +162,8 @@ if(BUILD_SHARED_LIBS)
  else()
    add_library(rime-static STATIC ${rime_src})
    target_link_libraries(rime-static ${rime_deps})
 +  target_compile_options(rime-static PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
 +  target_compile_definitions(rime-static PRIVATE BOOST_DISABLE_CURRENT_LOCATION)
-   set_target_properties(rime-static PROPERTIES OUTPUT_NAME "rime" PREFIX "lib")
-   install(TARGETS rime-static DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
- endif()
+   set_target_properties(rime-static PROPERTIES
+     OUTPUT_NAME "rime" PREFIX "lib"
+     ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 -- 
 2.43.0
 
@@ -40,11 +40,11 @@ diff --git a/src/rime/engine.cc b/src/rime/engine.cc
 index 64c0fb68..549a8112 100644
 --- a/src/rime/engine.cc
 +++ b/src/rime/engine.cc
-@@ -54,7 +54,6 @@ class ConcreteEngine : public Engine {
+@@ -52,7 +52,6 @@ class ConcreteEngine : public Engine {
+   vector<of<Filter>> filters_;
+   vector<of<Formatter>> formatters_;
    vector<of<Processor>> post_processors_;
-   // To make sure dumping user.yaml when processors_.clear(),
-   // switcher is owned by processors_[0]
--  weak<Switcher> switcher_;
+-  an<Switcher> switcher_;
  };
  
  // implementations
@@ -64,7 +64,7 @@ index 2e1c8b81..47c39544 100644
    void set_active_engine(Engine* engine = nullptr) { active_engine_ = engine; }
  
    RIME_API static Engine* Create();
-+  weak<Switcher> switcher_;
++  an<Switcher> switcher_;
  
   protected:
    Engine();
@@ -106,7 +106,7 @@ index 678169c0..1085fe5c 100644
      return;
    ctx->set_option(option, !!value);
 +  auto engine = session->engine_.get();
-+  auto switcher = engine->switcher_.lock();
++  auto switcher = engine->switcher_;
 +  if (switcher->IsAutoSave(option)) {
 +    if (Config* user_config = switcher->user_config()) {
 +      user_config->SetBool("var/option/" + std::string(option), value);

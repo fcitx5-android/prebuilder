@@ -49,6 +49,7 @@ librimeRule = do
             [ "-DBUILD_SHARED_LIBS=OFF",
               "-DBUILD_STATIC=ON",
               "-DBUILD_TEST=OFF",
+              "-DALSO_LOG_TO_STDERR=ON",
               "-DCMAKE_FIND_ROOT_PATH="
                 <> intercalate
                   ";"
