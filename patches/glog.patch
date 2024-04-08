@@ -6,7 +6,7 @@ index b787631..1fc8cf4 100644
    COMMAND ${CMAKE_COMMAND} -E touch ${_glog_EMPTY_SOURCE}
  )
  
-+target_compile_options(glog_internal PRIVATE "-ffile-prefix-map==.")
++target_compile_options(glog_internal PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
  add_library (glog
    $<TARGET_OBJECTS:glog_internal>
    ${_glog_EMPTY_SOURCE}
