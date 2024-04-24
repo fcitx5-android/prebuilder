@@ -123,7 +123,6 @@ chineseAddonsRule = do
   pinyinStrokeRule
   pinyinTableRule
   "chinese-addons-data" ~> do
-    copyFile' (outputDir </> "emoji.dict") $ outputDir </> "chinese-addons-data" </> "pinyin" </> "emoji.dict"
     copyFile' (outputDir </> "chaizi.dict") $ outputDir </> "chinese-addons-data" </> "pinyin" </> "chaizi.dict"
     copyFile' (outputDir </> "py_table.mb") $ outputDir </> "chinese-addons-data" </> "pinyinhelper" </> "py_table.mb"
     copyFile' (outputDir </> "py_stroke.mb") $ outputDir </> "chinese-addons-data" </> "pinyinhelper" </> "py_stroke.mb"
@@ -139,7 +138,6 @@ pinyinExtraDictRule = do
           txt <- download chineseAddonsRepoDataUrl src sha256
           execute "libime_pinyindict" txt out
   dict "chaizi"
-  dict "emoji"
 
 pinyinStrokeRule :: Rules ()
 pinyinStrokeRule = do
