@@ -1,102 +1,47 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 07112b0..4ae4ab7 100644
+index 93da0e62..4a535a3d 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -168,25 +168,6 @@ set(ALL_INC
-     ${INC_DIR}/mod_aux.h
- )
+@@ -209,24 +209,26 @@ if(WITH_RUST)
+     list(APPEND ALL_INC ${INC_DIR}/chewing_rs.h)
+ endif()
  
--# info page
--find_program(MAKEINFO makeinfo)
--if (MAKEINFO)
--    add_custom_command(
--        OUTPUT
--            ${INFO_BIN}
--        COMMAND ${MAKEINFO} ${INFO_SRC} -o ${INFO_BIN} -I ${PROJECT_BINARY_DIR}/doc
--        DEPENDS
--            ${INFO_SRC}
--    )
--    add_custom_target(INFO ALL DEPENDS ${INFO_BIN})
--    add_dependencies(check INFO)
+-add_subdirectory(doc)
+-add_subdirectory(tests)
+-add_subdirectory(data)
 -
--    find_program(INSTALL_INFO NAMES ginstall-info install-info)
--    if (INSTALL_INFO)
--        install(FILES ${INFO_BIN} DESTINATION ${CMAKE_INSTALL_INFODIR})
--        install(CODE "execute_process(COMMAND ${INSTALL_INFO} --info-dir=${CMAKE_INSTALL_INFODIR} ${INFO_BIN})")
--    endif()
--endif()
- 
- 
- # We need to copy static data to binary tree when using out of tree build.
-@@ -229,16 +210,6 @@ set_target_properties(${ALL_TOOLS} PROPERTIES
- )
- 
- # tools command
--add_custom_command(
--    OUTPUT
--        ${ALL_DATA}
--    COMMAND ${CMAKE_COMMAND} -E make_directory ${DATA_BIN_DIR}
--    COMMAND ${CMAKE_COMMAND} -E chdir ${DATA_BIN_DIR} ${TOOLS_BIN_DIR}/init_database ${DATA_SRC_DIR}/phone.cin ${DATA_SRC_DIR}/tsi.src
--    DEPENDS
--        ${ALL_TOOLS}
--        ${DATA_SRC_DIR}/phone.cin
--        ${DATA_SRC_DIR}/tsi.src
--)
- 
- # test
- set(ALL_TESTCASES
-@@ -325,7 +296,6 @@ if (${CURSES_FOUND})
- endif()
- 
- # data
--add_custom_target(data ALL DEPENDS ${ALL_DATA})
- 
  # library
- add_library(chewing OBJECT
-@@ -361,8 +331,9 @@ add_library(chewing OBJECT
-     ${SRC_DIR}/userphrase.c
-     ${SRC_DIR}/bopomofo.c
+ add_library(common OBJECT
+     src/porting_layer/src/asprintf.h
+ 
+     src/porting_layer/src/asprintf.c
  )
-+target_compile_options(chewing PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
- set_target_properties(chewing PROPERTIES
--    COMPILE_DEFINITIONS "CHEWING_DATADIR=\"${CMAKE_INSTALL_FULL_DATADIR}/libchewing\""
-+    COMPILE_DEFINITIONS "CHEWING_DATADIR=\"./libchewing\""
++target_compile_options(common PRIVATE
++    "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=."
++)
+ target_compile_definitions(common PRIVATE
+-    CHEWING_DATADIR=\"${CMAKE_INSTALL_FULL_DATADIR}/libchewing\"
++    CHEWING_DATADIR=\"./libchewing\"
  )
  
- if (WITH_SQLITE3)
-@@ -397,24 +368,19 @@ if (WITH_SQLITE3)
-         target_link_libraries(testhelper ${SQLITE3_LIBRARY})
+ add_library(libchewing ${ALL_INC} src/chewing.c)
+ set_target_properties(libchewing PROPERTIES LINKER_LANGUAGE C)
++target_compile_options(libchewing PRIVATE
++    "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=."
++)
+ target_compile_definitions(libchewing PRIVATE
+-    CHEWING_DATADIR=\"${CMAKE_INSTALL_FULL_DATADIR}/libchewing\"
++    CHEWING_DATADIR=\"./libchewing\"
+ )
+ if(NOT WITH_RUST)
+     target_sources(common PRIVATE
+@@ -279,6 +281,9 @@ if(NOT WITH_RUST)
+             ${SRC_DIR}/userphrase-hash.c
+         )
      endif()
- else()
--    add_library(userphrase STATIC
-+    add_library(userphrase OBJECT
-         ${INC_DIR}/internal/hash-private.h
- 
-         ${SRC_DIR}/hash.c
-         ${SRC_DIR}/userphrase-hash.c
-     )
-+target_compile_options(userphrase PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
- endif()
- 
- if (BUILD_DLL OR NOT MSVC)
-     if (MSVC)
-         add_definitions(-DCHEWINGDLL_EXPORTS)
-     endif()
--    add_library(chewing_shared SHARED
--        $<TARGET_OBJECTS:chewing>
--        $<TARGET_OBJECTS:common>
--    )
--    list(APPEND LIBS chewing_shared)
--    add_dependencies(check chewing_shared)
- endif()
- 
- if (NOT BUILD_DLL)
-@@ -452,8 +418,6 @@ add_library(common OBJECT
- 
- 
- # install
--install(FILES ${ALL_DATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/libchewing)
--install(FILES ${ALL_STATIC_DATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/libchewing)
- install(FILES ${ALL_INC} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/chewing)
- install(FILES ${PROJECT_BINARY_DIR}/chewing.pc
-     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
++    target_compile_options(userphrase PRIVATE
++        "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=."
++    )
+     target_link_libraries(libchewing
+         PRIVATE common
+         PRIVATE userphrase)
