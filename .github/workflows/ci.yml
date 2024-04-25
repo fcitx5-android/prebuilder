@@ -28,7 +28,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
 
       - name: Install NDK and CMake
         run: |
@@ -58,7 +58,7 @@ jobs:
 
       - name: Upload prebuilt to artifact
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: build/prebuilt.tar.zst
 
