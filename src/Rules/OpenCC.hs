@@ -22,7 +22,9 @@ openccRule = do
       (cmakeBuilder "opencc")
         { source = const $ pure "OpenCC",
           -- use prebuilt marisa
-          preBuild = BuildAction $ \_ src -> cmd_ (Cwd src) Shell "sed -i '213s|find_library(LIBMARISA NAMES marisa)|find_package(marisa)\\nset(LIBMARISA marisa)|' CMakeLists.txt",
+          preBuild = BuildAction $ \_ src -> do
+            cmd_ (Cwd src) "git checkout ."
+            cmd_ (Cwd src) "git apply ../patches/opencc.patch",
           cmakeFlags = \BuildEnv {..} ->
             [ "-DSHARE_INSTALL_PREFIX=share",
               "-DINCLUDE_INSTALL_DIR=include",

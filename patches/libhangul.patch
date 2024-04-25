@@ -1,0 +1,29 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8aafe38..edc76dd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -50,7 +50,6 @@ set(LIBHANGUL_LIBRARY_DIR "${CMAKE_INSTALL_LIBDIR}")
+ add_subdirectory(hangul)
+ add_subdirectory(data/hanja)
+ add_subdirectory(data/keyboards)
+-add_subdirectory(tools)
+ add_subdirectory(po)
+ 
+ if(BUILD_TESTING)
+diff --git a/hangul/CMakeLists.txt b/hangul/CMakeLists.txt
+index 14fde95..399beb6 100644
+--- a/hangul/CMakeLists.txt
++++ b/hangul/CMakeLists.txt
+@@ -45,9 +45,9 @@ add_library(hangul
+ 
+ target_compile_definitions(hangul
+     PRIVATE -DHAVE_CONFIG_H
+-    PRIVATE -DLOCALEDIR=\"${CMAKE_INSTALL_FULL_LOCALEDIR}\"
+-    PRIVATE -DLIBHANGUL_DEFAULT_HANJA_DIC=\"${CMAKE_INSTALL_FULL_DATADIR}/${CMAKE_PROJECT_NAME}/hanja/hanja.txt\"
+-    PRIVATE -DLIBHANGUL_DATA_DIR=\"${CMAKE_INSTALL_FULL_DATADIR}/${CMAKE_PROJECT_NAME}\"
++    PRIVATE -DLOCALEDIR=\"${CMAKE_INSTALL_LOCALEDIR}\"
++    PRIVATE -DLIBHANGUL_DEFAULT_HANJA_DIC=\"${CMAKE_INSTALL_DATADIR}/${CMAKE_PROJECT_NAME}/hanja/hanja.txt\"
++    PRIVATE -DLIBHANGUL_DATA_DIR=\"${CMAKE_INSTALL_DATADIR}/${CMAKE_PROJECT_NAME}\"
+     PRIVATE -DTOP_SRCDIR=\"${CMAKE_SOURCE_DIR}\"
+ )
+ 
