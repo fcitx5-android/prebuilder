@@ -1,18 +1,21 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 93da0e62..4a535a3d 100644
+index ae1d14b7..5d03df35 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -209,24 +209,26 @@ if(WITH_RUST)
+@@ -1,2 +1,2 @@
+-cmake_minimum_required(VERSION 3.24.0)
++cmake_minimum_required(VERSION 3.22.1)
+ project(libchewing LANGUAGES C)
+@@ -216,8 +216,6 @@ if(WITH_RUST)
      list(APPEND ALL_INC ${INC_DIR}/chewing_rs.h)
  endif()
  
 -add_subdirectory(doc)
--add_subdirectory(tests)
 -add_subdirectory(data)
--
- # library
- add_library(common OBJECT
-     src/porting_layer/src/asprintf.h
+ if(BUILD_TESTING)
+     add_subdirectory(tests)
+ endif()
+@@ -228,14 +226,20 @@ add_library(common OBJECT
  
      src/porting_layer/src/asprintf.c
  )
@@ -35,7 +38,7 @@ index 93da0e62..4a535a3d 100644
  )
  if(NOT WITH_RUST)
      target_sources(common PRIVATE
-@@ -279,6 +281,9 @@ if(NOT WITH_RUST)
+@@ -288,6 +292,9 @@ if(NOT WITH_RUST)
              ${SRC_DIR}/userphrase-hash.c
          )
      endif()
