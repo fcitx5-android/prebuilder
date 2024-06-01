@@ -20,27 +20,31 @@ jobs:
         run: |
           pacman -Syu --needed --noconfirm \
             git unzip ghc cabal-install haskell-shake haskell-aeson-pretty \
-            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jdk17-openjdk check
+            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jre-openjdk
 
       - name: Fetch source code
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          # this only sync submodules specified in .gitmodules,
+          # because we don't want recursive submodules in glog, librime, etc.
+          submodules: true
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install NDK and CMake
+      - name: Fetch submodules
         run: |
-          sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
-          sdkmanager --install "cmake;${{ env.CMAKE_VERSION }}"
+          # it appears to be a bug when building in containers: https://github.com/actions/checkout/issues/915
+          git config --global --add safe.directory '*'
+          # fetch libime submodule kenlm since it's not in .gitmodules
+          git submodule update --init --recursive libime
+
+      - name: Setup Android NDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "ndk;${{ env.NDK_VERSION }} cmake;${{ env.CMAKE_VERSION }}"
 
       - name: Build everything
         env:
-          LANG: "C.UTF-8"
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
         run: |
-          git config --global --add safe.directory '*'
           # use archlinux's dynamic only ghc
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
           ./build-cabal -j everything
