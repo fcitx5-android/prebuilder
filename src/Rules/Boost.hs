@@ -24,7 +24,7 @@ boostRule = do
             boostVersion <- getConfig' "boost_version"
             sha256 <- getConfig' "boost_sha256"
             let boostTag = "boost-" <> boostVersion
-                boostTar = boostTag <.> "tar" <.> "xz"
+                boostTar = boostTag <> "-cmake" <.> "tar" <.> "xz"
                 boostUrl = "https://github.com/boostorg/boost/releases/download" </> boostTag <> "/"
             _ <- download boostUrl boostTar sha256
             cmd_ (Cwd out) "tar" "xf" boostTar
