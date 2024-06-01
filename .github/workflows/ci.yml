@@ -25,25 +25,24 @@ jobs:
       - name: Fetch source code
         uses: actions/checkout@v4
         with:
+          # this only sync submodules specified in .gitmodules,
+          # because we don't want recursive submodules in glog, librime, etc.
           submodules: true
 
-      - name: Setup Android SDK
+      - name: Fetch submodules
+        run: |
+          # fetch libime submodule kenlm since it's not in .gitmodules
+          git submodule update --init --recursive libime
+
+      - name: Setup Android NDK
         uses: android-actions/setup-android@v3
         with:
-          packages: ""
-
-      - name: Install NDK and CMake
-        run: |
-          sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
-          sdkmanager --install "cmake;${{ env.CMAKE_VERSION }}"
+          packages: "ndk;${{ env.NDK_VERSION }} cmake;${{ env.CMAKE_VERSION }}"
 
       - name: Build everything
         env:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
         run: |
-          git config --global --add safe.directory '*'
-          # fetch libime submodule kenlm
-          git submodule update --init --recursive libime
           # use archlinux's dynamic only ghc
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
           ./build-cabal -j everything
