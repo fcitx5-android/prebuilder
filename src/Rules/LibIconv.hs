@@ -20,11 +20,12 @@ libiconvRule = do
     useCMake $
       (cmakeBuilder "libiconv")
         { preBuild = BuildAction $ \_ src -> do
-            copyFile' "patches/libiconv.config.h" (src </> "include/config.h")
-            copyFile' "patches/libiconv.cmake" (src </> "CMakeLists.txt")
+            copyFile' "patches/libiconv/config.h" (src </> "include/config.h")
+            copyFile' "patches/libiconv/CMakeLists.txt" (src </> "CMakeLists.txt")
             copyFile' (src </> "libcharset/include/localcharset.h.in") (src </> "libcharset/include/localcharset.h")
             cmd_ (Cwd src) "make -f Makefile.devel lib/aliases.h lib/flags.h lib/translit.h"
-            cmd_ ("patch -i patches/iconv.h.in.patch -o " <> src </> "include/iconv.h " <> src </> "include/iconv.h.in"),
+            copyFile' (src </> "include/iconv.h.in") (src </> "include/iconv.h")
+            cmd_ (Cwd src) "git apply ../patches/libiconv/libiconv.patch",
           cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF"]
         }
   "libiconv" ~> buildWithAndroidEnv buildLibIconv LibIconv
