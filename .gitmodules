@@ -60,3 +60,9 @@
 [submodule "librime-predict"]
 	path = librime-predict
 	url = https://github.com/rime/librime-predict
+[submodule "libthai"]
+	path = libthai
+	url = https://github.com/tlwg/libthai
+[submodule "libiconv"]
+	path = libiconv
+	url = https://git.savannah.gnu.org/git/libiconv

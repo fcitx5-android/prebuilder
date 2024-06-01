@@ -33,8 +33,10 @@ executable prebuilder
     Rules.LibHangul
     Rules.LibIME
     Rules.LibIMEJyutping
+    Rules.LibIconv
     Rules.LibIntlLite
     Rules.LibRime
+    Rules.LibThai
     Rules.Lua
     Rules.Marisa
     Rules.OpenCC
