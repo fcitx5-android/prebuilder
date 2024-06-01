@@ -31,6 +31,8 @@ jobs:
 
       - name: Fetch submodules
         run: |
+          # it appears to be a bug when building in containers: https://github.com/actions/checkout/issues/915
+          git config --global --add safe.directory '*'
           # fetch libime submodule kenlm since it's not in .gitmodules
           git submodule update --init --recursive libime
 
