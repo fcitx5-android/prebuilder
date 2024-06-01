@@ -20,15 +20,17 @@ jobs:
         run: |
           pacman -Syu --needed --noconfirm \
             git unzip ghc cabal-install haskell-shake haskell-aeson-pretty \
-            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jdk17-openjdk check
+            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jre-openjdk
 
       - name: Fetch source code
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: ""
 
       - name: Install NDK and CMake
         run: |
@@ -37,10 +39,11 @@ jobs:
 
       - name: Build everything
         env:
-          LANG: "C.UTF-8"
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
         run: |
           git config --global --add safe.directory '*'
+          # fetch libime submodule kenlm
+          git submodule update --init --recursive libime
           # use archlinux's dynamic only ghc
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
           ./build-cabal -j everything

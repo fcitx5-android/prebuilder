@@ -1,23 +1,19 @@
 [submodule "fmt"]
 	path = fmt
 	url = https://github.com/fmtlib/fmt
-	ignore = untracked
 [submodule "libuv"]
 	path = libuv
 	url = https://github.com/libuv/libuv
-	ignore = untracked
 [submodule "libintl-lite"]
 	path = libintl-lite
 	url = https://github.com/j-jorge/libintl-lite
-	ignore = untracked
 [submodule "Lua"]
 	path = Lua
 	url = https://github.com/walterschell/Lua
-	ignore = untracked
 [submodule "OpenCC"]
 	path = OpenCC
 	url = https://github.com/BYVoid/OpenCC
-	ignore = untracked
+	fetchRecurseSubmodules = false
 [submodule "anthy-unicode"]
 	path = anthy-unicode
 	url = https://github.com/fujiwarat/anthy-unicode
@@ -27,15 +23,18 @@
 [submodule "yaml-cpp"]
 	path = yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
+	fetchRecurseSubmodules = false
 [submodule "leveldb"]
 	path = leveldb
 	url = https://github.com/google/leveldb
+	fetchRecurseSubmodules = false
 [submodule "marisa-trie"]
 	path = marisa-trie
 	url = https://github.com/rime/marisa-trie
 [submodule "librime"]
 	path = librime
 	url = https://github.com/rime/librime
+	fetchRecurseSubmodules = false
 [submodule "librime-lua"]
 	path = librime-lua
 	url = https://github.com/hchunhui/librime-lua
