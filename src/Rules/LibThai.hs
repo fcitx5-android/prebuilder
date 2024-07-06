@@ -20,7 +20,6 @@ libthaiRule = do
     useCMake $
       (cmakeBuilder "libthai")
         { preBuild = BuildAction $ \_ src -> do
-            copyFile' "patches/libthai.cmake" (src </> "CMakeLists.txt"),
-          cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF"]
+            copyFile' "patches/libthai/CMakeLists.txt" (src </> "CMakeLists.txt")
         }
   "libthai" ~> buildWithAndroidEnv buildLibThai LibThai

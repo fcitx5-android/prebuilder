@@ -25,7 +25,6 @@ libiconvRule = do
             copyFile' (src </> "libcharset/include/localcharset.h.in") (src </> "libcharset/include/localcharset.h")
             cmd_ (Cwd src) "make -f Makefile.devel lib/aliases.h lib/flags.h lib/translit.h"
             copyFile' (src </> "include/iconv.h.in") (src </> "include/iconv.h")
-            cmd_ (Cwd src) "git apply ../patches/libiconv/libiconv.patch",
-          cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF"]
+            cmd_ (Cwd src) "git apply ../patches/libiconv/libiconv.patch"
         }
   "libiconv" ~> buildWithAndroidEnv buildLibIconv LibIconv
