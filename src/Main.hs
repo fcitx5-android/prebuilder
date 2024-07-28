@@ -21,11 +21,13 @@ import Rules.GLog
 import Rules.LevelDB
 import Rules.LibChewing
 import Rules.LibUV
+import Rules.LibIconv
 import Rules.LibHangul
 import Rules.LibIME
 import Rules.LibIMEJyutping
 import Rules.LibIntlLite
 import Rules.LibRime
+import Rules.LibThai
 import Rules.Lua
 import Rules.Marisa
 import Rules.OpenCC
@@ -66,6 +68,8 @@ main = do
       librimeRule
       libhangulRule
       libchewingRule
+      libthaiRule
+      libiconvRule
       anthyDictRule
       isInGitHubActionRule
       getOutputDirRule
@@ -90,6 +94,8 @@ main = do
                 "libhangul",
                 "chewing-dict",
                 "libchewing",
+                "libthai",
+                "libiconv",
                 "anthy-dict"
               ]
         need artifacts

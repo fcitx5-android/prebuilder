@@ -1,0 +1,58 @@
+--- a/include/iconv.h
++++ b/include/iconv.h
+@@ -21,7 +21,7 @@
+ #define _LIBICONV_H
+ 
+ #define _LIBICONV_VERSION 0x0111    /* version number: (major<<8) + minor */
+-extern @DLL_VARIABLE@ int _libiconv_version; /* Likewise */
++extern  int _libiconv_version; /* Likewise */
+ 
+ /* We would like to #include any system header file which could define
+    iconv_t, 1. in order to eliminate the risk that the user gets compilation
+@@ -55,7 +55,7 @@
+    have EILSEQ in a different header.  On these systems, define EILSEQ
+    ourselves. */
+ #ifndef EILSEQ
+-#define EILSEQ @EILSEQ@
++#define EILSEQ 
+ #endif
+ 
+ 
+@@ -79,7 +79,7 @@
+ #ifndef LIBICONV_PLUG
+ #define iconv libiconv
+ #endif
+-extern size_t iconv (iconv_t cd, @ICONV_CONST@ char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
++extern size_t iconv (iconv_t cd,  char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
+ 
+ /* Frees resources allocated for conversion descriptor ‘cd’. */
+ #ifndef LIBICONV_PLUG
+@@ -97,8 +97,8 @@
+ 
+ /* Nonstandard extensions. */
+ 
+-#if @USE_MBSTATE_T@
+-#if @BROKEN_WCHAR_H@
++#if 1
++#if 0
+ /* Tru64 with Desktop Toolkit C has a bug: <stdio.h> must be included before
+    <wchar.h>.
+    BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
+@@ -118,7 +118,7 @@
+    A pointer to such an object can be used as an iconv_t. */
+ typedef struct {
+   void* dummy1[28];
+-#if @USE_MBSTATE_T@
++#if 1
+   mbstate_t dummy2;
+ #endif
+ } iconv_allocation_t;
+@@ -165,7 +165,7 @@
+                                          void* callback_arg),
+               void* callback_arg,
+               void* data);
+-#if @HAVE_WCHAR_T@
++#if 1
+ /* Fallback function.  Invoked when a number of bytes could not be converted to
+    a wide character.  This function should process all bytes from inbuf and may
+    produce replacement wide characters by calling the write_replacement
