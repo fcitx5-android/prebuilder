@@ -11,7 +11,7 @@ dictNames :: [String]
 dictNames = ["sc", "extb"]
 
 tableDictNames :: [String]
-tableDictNames = ["db", "erbi", "qxm", "wanfeng", "wbpy", "wbx", "zrm", "cj"]
+tableDictNames = ["db", "wbpy", "wbx", "zrm"]
 
 libIMERule :: Rules ()
 libIMERule = do
