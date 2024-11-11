@@ -35,7 +35,8 @@ boostRule = do
                 "-DBOOST_EXCLUDE_LIBRARIES="
                   <> intercalate
                     ";"
-                    [ "chrono",
+                    [ "charconv",
+                      "chrono",
                       "context",
                       "contract",
                       "coroutine",
@@ -46,6 +47,7 @@ boostRule = do
                       "log",
                       "math",
                       "nowide",
+                      "process",
                       "program_options",
                       "serialization",
                       "stacktrace",
@@ -57,6 +59,10 @@ boostRule = do
                       "wave",
                       "wserialization"
                     ],
+                "-DBOOST_IOSTREAMS_ENABLE_BZIP2=OFF",
+                "-DBOOST_IOSTREAMS_ENABLE_ZLIB=OFF",
+                "-DBOOST_IOSTREAMS_ENABLE_LZMA=OFF",
+                "-DBOOST_IOSTREAMS_ENABLE_ZSTD=OFF",
                 "-DBOOST_INSTALL_LAYOUT=system"
               ]
         }

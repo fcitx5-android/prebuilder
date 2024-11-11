@@ -43,6 +43,7 @@ libchewingRule = do
     let libchewingBuildHost = outputDir </> "libchewing-build-host"
         dictSrcDir = libchewingBuildHost </> "data"
     cmd_ (Cwd libchewingSrc) Shell "git checkout ."
+    cmd_ (Cwd libchewingSrc) "git apply ../patches/libchewing-host.patch"
     cmd_
       "cmake"
       "-B"
@@ -50,6 +51,7 @@ libchewingRule = do
       "-G"
       "Ninja"
       [ "-DBUILD_SHARED_LIBS=OFF",
+        "-DBUILD_TESTING=OFF",
         "-DWITH_SQLITE3=OFF",
         "-DWITH_RUST=OFF"
       ]

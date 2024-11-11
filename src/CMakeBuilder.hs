@@ -109,12 +109,12 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
       unBuildActionABI preBuildEachABI q bEnv
       cmd_
         (Cwd src)
+        (AddPath [] [ ninja ])
         cmake
         "-B"
         buildEnvBuildDir
         "-GNinja"
         ( [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
-            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show (platform env),
             "-DANDROID_STL=c++_shared",
