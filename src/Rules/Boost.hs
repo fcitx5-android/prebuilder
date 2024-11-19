@@ -35,12 +35,16 @@ boostRule = do
                 "-DBOOST_EXCLUDE_LIBRARIES="
                   <> intercalate
                     ";"
-                    [ "charconv",
+                    [ "atomic",
+                      "charconv",
                       "chrono",
+                      "container",
                       "context",
                       "contract",
                       "coroutine",
+                      "date_time",
                       "fiber",
+                      "filesystem",
                       "graph",
                       "json",
                       "locale",
