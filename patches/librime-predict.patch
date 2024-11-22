@@ -10,9 +10,3 @@ index 07703bf..5ab6d3b 100644
  if(BUILD_SHARED_LIBS)
    set_target_properties(rime-predict-objs
      PROPERTIES
-@@ -15,4 +16,4 @@ set(plugin_objs $<TARGET_OBJECTS:rime-predict-objs> PARENT_SCOPE)
- set(plugin_deps ${rime_library} PARENT_SCOPE)
- set(plugin_modules "predict" PARENT_SCOPE)
- 
--add_subdirectory(tools)
-+# add_subdirectory(tools)
