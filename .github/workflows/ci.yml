@@ -14,13 +14,14 @@ jobs:
       NDK_VERSION: "25.2.9519653"
       CMAKE_VERSION: "3.22.1"
       ANDROID_PLATFORM: "23"
+      MOZC_SHA: ad0e97b8b8dcfd4c841a02c5d6a043fb5e741405
 
     steps:
       - name: Install build dependencies
         run: |
           pacman -Syu --needed --noconfirm \
             git unzip ghc cabal-install haskell-shake haskell-aeson-pretty \
-            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jre-openjdk gperf
+            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jre-openjdk gperf bazel
 
       - name: Fetch source code
         uses: actions/checkout@v4
@@ -36,10 +37,25 @@ jobs:
           # fetch libime submodule kenlm since it's not in .gitmodules
           git submodule update --init --recursive libime
 
+      - name: Fetch mozc
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          repository: google/mozc
+          path: fcitx5-mozc/mozc
+          ref: ${{ env.MOZC_SHA }}
+
       - name: Setup Android NDK
         uses: android-actions/setup-android@v3
         with:
           packages: "ndk;${{ env.NDK_VERSION }} cmake;${{ env.CMAKE_VERSION }}"
+
+      - name: Build mozc_data.inc
+        run: |
+          cd fcitx5-mozc/mozc/src
+          useradd -m builduser
+          chown -R builduser:builduser .
+          sudo -u builduser JAVA_HOME=/usr/lib/jvm/java-21-openjdk bazel build --config oss_linux --host_cxxopt=-Wno-uninitialized //data_manager/oss:mozc_data.inc
 
       - name: Build everything
         env:

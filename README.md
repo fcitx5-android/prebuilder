@@ -36,3 +36,4 @@ Cabal is required to build this project.
 * libchewing: [chewing/libchewing](https://github.com/chewing/libchewing)
 * libthai: [tlwg/libthai](https://github.com/tlwg/libthai)
 * libiconv: [GNU/libiconv](https://savannah.gnu.org/projects/libiconv)
+* mozc: [google/mozc](https://github.com/google/mozc)

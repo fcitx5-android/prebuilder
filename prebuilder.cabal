@@ -35,6 +35,7 @@ executable prebuilder
     Rules.LibIMEJyutping
     Rules.LibIconv
     Rules.LibIntlLite
+    Rules.LibMozc
     Rules.LibRime
     Rules.LibThai
     Rules.Lua
