@@ -52,6 +52,7 @@ jobs:
 
       - name: Build mozc_data.inc
         run: |
+          git apply --directory=libmozc/mozc/src/third_party/protobuf libmozc/patches/protobuf.patch
           cd libmozc/mozc/src
           useradd -m builduser
           chown -R builduser:builduser .
