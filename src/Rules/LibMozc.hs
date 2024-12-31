@@ -19,14 +19,14 @@ libmozcRule :: Rules ()
 libmozcRule = do
   buildLibmozc <-
     useCMake $
-      (cmakeBuilder "fcitx5-mozc")
+      (cmakeBuilder "libmozc")
         { preBuild = BuildAction $ \_ src -> do
             cmd_ (Cwd src) "cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_MOZC_ADDON=OFF"
             cmd_ (Cwd src) "cmake --build build --target protoc",
           cmakeFlags =
             const
               [ "-DPROTOC_EXECUTABLE=../../build/protoc",
-                "-DCMAKE_CXX_FLAGS=-I../../fcitx5-mozc/mozc/src/bazel-bin",
+                "-DCMAKE_CXX_FLAGS=-I../../libmozc/mozc/src/bazel-bin",
                 "-DBUILD_MOZC_ADDON=OFF"
               ],
           postBuildEachABI = BuildActionABI $ \_ BuildEnv {..} -> do
