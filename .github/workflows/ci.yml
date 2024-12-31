@@ -42,7 +42,7 @@ jobs:
         with:
           submodules: recursive
           repository: google/mozc
-          path: fcitx5-mozc/mozc
+          path: libmozc/mozc
           ref: ${{ env.MOZC_SHA }}
 
       - name: Setup Android NDK
@@ -52,7 +52,7 @@ jobs:
 
       - name: Build mozc_data.inc
         run: |
-          cd fcitx5-mozc/mozc/src
+          cd libmozc/mozc/src
           useradd -m builduser
           chown -R builduser:builduser .
           sudo -u builduser JAVA_HOME=/usr/lib/jvm/java-21-openjdk bazel build --config oss_linux --host_cxxopt=-Wno-uninitialized //data_manager/oss:mozc_data.inc
