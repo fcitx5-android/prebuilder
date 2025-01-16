@@ -65,4 +65,4 @@
 	url = https://github.com/tlwg/libthai
 [submodule "libiconv"]
 	path = libiconv
-	url = https://git.savannah.gnu.org/git/libiconv
+	url = https://github.com/fcitx5-android/libiconv
