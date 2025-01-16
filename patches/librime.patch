@@ -63,7 +63,7 @@ index 2e1c8b81..94a6b500 100644
 @@ -35,6 +36,7 @@ class Engine : public Messenger {
    void set_active_engine(Engine* engine = nullptr) { active_engine_ = engine; }
  
-   RIME_API static Engine* Create();
+   RIME_DLL static Engine* Create();
 +  an<Switcher> switcher_;
  
   protected:
@@ -92,14 +92,14 @@ diff --git a/src/rime_api_impl.h b/src/rime_api_impl.h
 index 7749ce98..b0200a67 100644
 --- a/src/rime_api_impl.h
 +++ b/src/rime_api_impl.h
-@@ -15,6 +15,8 @@
+@@ -17,6 +17,8 @@
  #include <rime/setup.h>
  #include <rime/signature.h>
  #include <rime/switches.h>
 +#include <rime/engine.h>
 +#include <rime/switcher.h>
  
- #include "rime_api.h"
+ using namespace rime;
  
 @@ -426,6 +428,13 @@ RIME_DEPRECATED void RimeSetOption(RimeSessionId session_id,
    if (!ctx)
