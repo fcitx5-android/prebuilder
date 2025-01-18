@@ -36,8 +36,10 @@ boostRule = do
                   <> intercalate
                     ";"
                     [ "atomic",
+                      "asio",
                       "charconv",
                       "chrono",
+                      "context",
                       "contract",
                       "coroutine",
                       "date_time",
