@@ -850,6 +850,6 @@ index 857a4ef8a..9deec0ef5 100644
  #include "uv.h"
  #include "internal.h"
 
-+#include <limits.h>  /* LLONG_MAX */
++# define LLONG_MAX   0x7fffffffffffffffLL
  #include <inttypes.h>
 
