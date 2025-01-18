@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d89d928..6ba6a32 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -49,6 +49,7 @@ add_library(marisa
+     ${MARISA_SRC}
+ )
+ 
++target_compile_options(marisa PRIVATE "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.")
+ install(TARGETS marisa
+         EXPORT marisa-targets
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

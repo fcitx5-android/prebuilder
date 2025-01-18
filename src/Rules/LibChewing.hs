@@ -18,29 +18,51 @@ libchewingRule :: Rules ()
 libchewingRule = do
   let libchewingSrc = "libchewing"
       dictOutputDir = outputDir </> "chewing-dict"
-      dictSrcDir = libchewingSrc </> "data"
 
   buildLibchewing <-
     useCMake $
       (cmakeBuilder "libchewing")
-        { cmakeFlags = const ["-DWITH_SQLITE3=OFF"],
-          preBuild = BuildAction $ \_ src -> do
+        { preBuild = BuildAction $ \_ src -> do
             -- CMakeLists is changed in last build
-            cmd_ (Cwd src) Shell "git checkout -- CMakeLists.txt"
+            cmd_ (Cwd src) Shell "git checkout ."
             -- skip data and shared lib
             -- merge libuserphrase.a into libchewing.a
             -- remove absolute path by CHEWING_DATADIR macro
             -- remove absolute path by __FILE__ macro
-            cmd_ (Cwd src) "git apply ../patches/libchewing.patch"
+            cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
+            cmakeFlags =
+              const 
+                [ "-DBUILD_SHARED_LIBS=OFF",
+                  "-DBUILD_TESTING=OFF",
+                  "-DWITH_SQLITE3=OFF",
+                  "-DWITH_RUST=OFF"
+                ]
         }
-  phony "generateDict" $ do
-    cmd_ (Cwd libchewingSrc) "./autogen.sh"
-    cmd_ (Cwd libchewingSrc) "./configure --with-sqlite3=no"
-    cmd_ (Cwd libchewingSrc) "make"
-
-  libchewingSrc </> "data/*" %> \_ -> need ["generateDict"]
 
   "chewing-dict" ~> do
+    let libchewingBuildHost = outputDir </> "libchewing-build-host"
+        dictSrcDir = libchewingBuildHost </> "data"
+    cmd_ (Cwd libchewingSrc) Shell "git checkout ."
+    cmd_
+      "cmake"
+      "-B"
+      libchewingBuildHost
+      "-G"
+      "Ninja"
+      [ "-DBUILD_SHARED_LIBS=OFF",
+        "-DBUILD_TESTING=OFF",
+        "-DWITH_SQLITE3=OFF",
+        "-DWITH_RUST=OFF"
+      ]
+      libchewingSrc
+    cmd_
+      "cmake"
+      "--build"
+      libchewingBuildHost
+      "--target"
+      [ "data",
+        "all_static_data"
+      ]
     copyFile' (dictSrcDir </> "dictionary.dat") (dictOutputDir </> "dictionary.dat")
     copyFile' (dictSrcDir </> "index_tree.dat") (dictOutputDir </> "index_tree.dat")
     copyFile' (dictSrcDir </> "pinyin.tab") (dictOutputDir </> "pinyin.tab")

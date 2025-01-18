@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1acb75a9..05198910 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -210,7 +210,8 @@ if(NOT USE_SYSTEM_MARISA)
+   message(STATUS "Use bundled marisa library.")
+   add_subdirectory(deps/marisa-0.2.6)
+ else()
+-  find_library(LIBMARISA NAMES marisa)
++  find_package(marisa)
++  set(LIBMARISA marisa)
+   if (LIBMARISA)
+     message(STATUS "libmarisa found: ${LIBMARISA}")
+   else()

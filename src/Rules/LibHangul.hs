@@ -20,11 +20,14 @@ libhangulRule = do
     useCMake $
       (cmakeBuilder "libhangul")
         { preBuild = BuildAction $ \_ src -> do
-            -- disable executable
-            cmd_ (Cwd src) Shell "sed -i '53s|add_subdirectory(tools)||' CMakeLists.txt"
-            cmd_ (Cwd src) Shell "sed -i '48s|FULL_LOCALEDIR|LOCALEDIR|' hangul/CMakeLists.txt"
-            cmd_ (Cwd src) Shell "sed -i '49,50s|FULL_DATADIR|DATADIR|' hangul/CMakeLists.txt",
-          cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF", "-DENABLE_EXTERNAL_KEYBOARDS=OFF"]
+            cmd_ (Cwd src) "git checkout ."
+            cmd_ (Cwd src) "git apply ../patches/libhangul.patch",
+          cmakeFlags = 
+            const 
+              [ "-DBUILD_SHARED_LIBS=OFF", 
+                "-DENABLE_EXTERNAL_KEYBOARDS=OFF",
+                "-DENABLE_UNIT_TEST=OFF"
+              ]
         }
   "libhangul" ~> do
     env <- getAndroidEnv

@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4115fa7..162ffb5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.10)
+ aux_source_directory(src octagram_src)
+ 
+ add_library(rime-octagram-objs OBJECT ${octagram_src})
++target_compile_options(rime-octagram-objs PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+ if(BUILD_SHARED_LIBS)
+   set_target_properties(rime-octagram-objs
+     PROPERTIES

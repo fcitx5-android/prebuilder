@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b787631..1fc8cf4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -402,6 +402,7 @@ add_custom_command (
+   COMMAND ${CMAKE_COMMAND} -E touch ${_glog_EMPTY_SOURCE}
+ )
+ 
++target_compile_options(glog_internal PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+ add_library (glog
+   $<TARGET_OBJECTS:glog_internal>
+   ${_glog_EMPTY_SOURCE}

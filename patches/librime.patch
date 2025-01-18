@@ -1,0 +1,120 @@
+From 15a8b479e66ac597a0fca4bede8012f5bb9df151 Mon Sep 17 00:00:00 2001
+From: Rocka <i@rocka.me>
+Date: Tue, 12 Nov 2024 22:16:16 +0800
+Subject: [PATCH 1/2] set file-prefix-map to relative path
+
+---
+ src/CMakeLists.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 16082869..c4a5b5ca 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -166,6 +166,8 @@ if(BUILD_SHARED_LIBS)
+ else()
+   add_library(rime-static STATIC ${rime_src})
+   target_link_libraries(rime-static ${rime_deps})
++  target_compile_options(rime-static PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
++  target_compile_definitions(rime-static PRIVATE BOOST_DISABLE_CURRENT_LOCATION)
+   set_target_properties(rime-static PROPERTIES
+     OUTPUT_NAME "rime" PREFIX "lib"
+     ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+-- 
+2.47.0
+
+
+From 25608d1ea7a246b3ac4e7ccc02b1b6dfbb468869 Mon Sep 17 00:00:00 2001
+From: Rocka <i@rocka.me>
+Date: Tue, 12 Nov 2024 22:20:33 +0800
+Subject: [PATCH 2/2] Persist options to user.yaml in RimeSetOption
+
+---
+ src/rime/engine.cc  | 1 -
+ src/rime/engine.h   | 2 ++
+ src/rime/service.h  | 8 ++++----
+ src/rime_api_impl.h | 9 +++++++++
+ 4 files changed, 15 insertions(+), 5 deletions(-)
+
+diff --git a/src/rime/engine.cc b/src/rime/engine.cc
+index 07aa6b7d..7360e0b5 100644
+--- a/src/rime/engine.cc
++++ b/src/rime/engine.cc
+@@ -52,7 +52,6 @@ class ConcreteEngine : public Engine {
+   vector<of<Filter>> filters_;
+   vector<of<Formatter>> formatters_;
+   vector<of<Processor>> post_processors_;
+-  an<Switcher> switcher_;
+ };
+ 
+ // implementations
+diff --git a/src/rime/engine.h b/src/rime/engine.h
+index 2e1c8b81..94a6b500 100644
+--- a/src/rime/engine.h
++++ b/src/rime/engine.h
+@@ -16,6 +16,7 @@ namespace rime {
+ class KeyEvent;
+ class Schema;
+ class Context;
++class Switcher;
+ 
+ class Engine : public Messenger {
+  public:
+@@ -35,6 +36,7 @@ class Engine : public Messenger {
+   void set_active_engine(Engine* engine = nullptr) { active_engine_ = engine; }
+ 
+   RIME_DLL static Engine* Create();
++  an<Switcher> switcher_;
+ 
+  protected:
+   Engine();
+diff --git a/src/rime/service.h b/src/rime/service.h
+index 2b3111af..95ca87dc 100644
+--- a/src/rime/service.h
++++ b/src/rime/service.h
+@@ -44,11 +44,11 @@ class Session {
+   Schema* schema() const;
+   time_t last_active_time() const { return last_active_time_; }
+   const string& commit_text() const { return commit_text_; }
+-
+- private:
+-  void OnCommit(const string& commit_text);
+-
+   the<Engine> engine_;
++
++ private:
++  void OnCommit(const string& commit_text);
++
+   time_t last_active_time_ = 0;
+   string commit_text_;
+ };
+diff --git a/src/rime_api_impl.h b/src/rime_api_impl.h
+index 7749ce98..b0200a67 100644
+--- a/src/rime_api_impl.h
++++ b/src/rime_api_impl.h
+@@ -17,6 +17,8 @@
+ #include <rime/setup.h>
+ #include <rime/signature.h>
+ #include <rime/switches.h>
++#include <rime/engine.h>
++#include <rime/switcher.h>
+ 
+ using namespace rime;
+ 
+@@ -426,6 +428,13 @@ RIME_DEPRECATED void RimeSetOption(RimeSessionId session_id,
+   if (!ctx)
+     return;
+   ctx->set_option(option, !!value);
++  auto engine = session->engine_.get();
++  auto switcher = engine->switcher_;
++  if (switcher->IsAutoSave(option)) {
++    if (Config* user_config = switcher->user_config()) {
++      user_config->SetBool("var/option/" + std::string(option), value);
++    }
++  }
+ }
+ 
+ RIME_DEPRECATED Bool RimeGetOption(RimeSessionId session_id,
+-- 
+2.47.0
+

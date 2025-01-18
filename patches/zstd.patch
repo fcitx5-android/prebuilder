@@ -1,0 +1,13 @@
+diff --git a/build/cmake/lib/CMakeLists.txt b/build/cmake/lib/CMakeLists.txt
+index 30349586b..0e0646dbd 100644
+--- a/build/cmake/lib/CMakeLists.txt
++++ b/build/cmake/lib/CMakeLists.txt
+@@ -134,7 +134,8 @@ if (ZSTD_BUILD_SHARED)
+ endif ()
+ 
+ if (ZSTD_BUILD_STATIC)
++    target_compile_options(libzstd_static PRIVATE "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.")
+     set_target_properties(
+             libzstd_static
+             PROPERTIES
+             POSITION_INDEPENDENT_CODE On

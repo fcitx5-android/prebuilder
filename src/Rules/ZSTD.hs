@@ -24,7 +24,9 @@ zstdRule = do
     useCMake $
       (cmakeBuilder "zstd")
         { cmakeFile = Just $ "build" </> "cmake",
-          preBuild = BuildAction $ \_ src -> cmd_ (Cwd src) Shell "sed -i '137s|set_target_properties(.*|target_compile_options(libzstd_static PRIVATE \"-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.\")\\n\\0|' build/cmake/lib/CMakeLists.txt",
+          preBuild = BuildAction $ \_ src -> do
+            cmd_ (Cwd src) "git checkout ."
+            cmd_ (Cwd src) "git apply ../patches/zstd.patch",
           cmakeFlags =
             const
               [ "-DZSTD_LEGACY_SUPPORT=OFF",

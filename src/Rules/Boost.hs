@@ -24,7 +24,7 @@ boostRule = do
             boostVersion <- getConfig' "boost_version"
             sha256 <- getConfig' "boost_sha256"
             let boostTag = "boost-" <> boostVersion
-                boostTar = boostTag <.> "tar" <.> "xz"
+                boostTar = boostTag <> "-cmake" <.> "tar" <.> "xz"
                 boostUrl = "https://github.com/boostorg/boost/releases/download" </> boostTag <> "/"
             _ <- download boostUrl boostTar sha256
             cmd_ (Cwd out) "tar" "xf" boostTar
@@ -35,17 +35,22 @@ boostRule = do
                 "-DBOOST_EXCLUDE_LIBRARIES="
                   <> intercalate
                     ";"
-                    [ "chrono",
+                    [ "atomic",
+                      "charconv",
+                      "chrono",
                       "context",
                       "contract",
                       "coroutine",
+                      "date_time",
                       "fiber",
+                      "filesystem",
                       "graph",
                       "json",
                       "locale",
                       "log",
                       "math",
                       "nowide",
+                      "process",
                       "program_options",
                       "serialization",
                       "stacktrace",
@@ -57,6 +62,10 @@ boostRule = do
                       "wave",
                       "wserialization"
                     ],
+                "-DBOOST_IOSTREAMS_ENABLE_BZIP2=OFF",
+                "-DBOOST_IOSTREAMS_ENABLE_ZLIB=OFF",
+                "-DBOOST_IOSTREAMS_ENABLE_LZMA=OFF",
+                "-DBOOST_IOSTREAMS_ENABLE_ZSTD=OFF",
                 "-DBOOST_INSTALL_LAYOUT=system"
               ]
         }
