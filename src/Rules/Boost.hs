@@ -38,7 +38,6 @@ boostRule = do
                     [ "atomic",
                       "charconv",
                       "chrono",
-                      "context",
                       "contract",
                       "coroutine",
                       "date_time",
