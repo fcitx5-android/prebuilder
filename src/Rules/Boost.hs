@@ -39,6 +39,7 @@ boostRule = do
                       "asio",
                       "charconv",
                       "chrono",
+                      "cobalt",
                       "context",
                       "contract",
                       "coroutine",
