@@ -842,3 +842,14 @@ index 857a4ef8a..9deec0ef5 100644
 -- 
 2.47.0
 
+
+-- 
+--- a/src/unix/linux.c
++++ b/src/unix/linux.c
+@@ -26,4 +26,5 @@
+ #include "uv.h"
+ #include "internal.h"
+
++#include <limits.h>  /* LLONG_MAX */
+ #include <inttypes.h>
+
