@@ -20,6 +20,10 @@ luaRule = do
     useCMake $
       (cmakeBuilder "lua")
         { source = const $ pure "Lua",
+          preBuild = BuildAction $ \_ src -> do
+            cmd_ (Cwd src) "git checkout ."
+            -- fix build for 32-bit devices
+            cmd_ (Cwd src) "git apply ../patches/lua.patch",
           cmakeFlags =
             const
               [ "-DLUA_BUILD_BINARY=OFF",
