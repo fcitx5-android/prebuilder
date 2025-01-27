@@ -66,3 +66,6 @@
 [submodule "libiconv"]
 	path = libiconv
 	url = https://git.savannah.gnu.org/git/libiconv
+[submodule "libmozc"]
+	path = libmozc
+	url = https://github.com/fcitx-contrib/fcitx5-mozc
