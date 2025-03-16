@@ -68,11 +68,18 @@ boostRule = do
                 "-DBOOST_IOSTREAMS_ENABLE_ZLIB=OFF",
                 "-DBOOST_IOSTREAMS_ENABLE_LZMA=OFF",
                 "-DBOOST_IOSTREAMS_ENABLE_ZSTD=OFF",
-                "-DBOOST_INSTALL_LAYOUT=system",
-                -- disable inline asm debug_gdb_scripts
-                "-DBOOST_ALL_NO_EMBEDDED_GDB_SCRIPTS=1",
-                "-DBOOST_OUTCOME_SYSTEM_ERROR2_DISABLE_INLINE_GDB_PRETTY_PRINTERS=1",
-                "-DBOOST_JSON_DEBUG_PRINTERS_HPP=1"
+                "-DBOOST_INSTALL_LAYOUT=system"
+              ],
+          cmakeEnv =
+            const
+              [ ("CXXFLAGS", 
+                  intercalate " "
+                    -- disable inline asm debug_gdb_scripts
+                    [ "BOOST_ALL_NO_EMBEDDED_GDB_SCRIPTS",
+                      "BOOST_OUTCOME_SYSTEM_ERROR2_DISABLE_INLINE_GDB_PRETTY_PRINTERS",
+                      "BOOST_JSON_DEBUG_PRINTERS_HPP"
+                    ]
+                ) 
               ]
         }
   "boost" ~> do

@@ -129,7 +129,7 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
             <> cmakeFlags bEnv
         )
         (maybeToList cmakeFile)
-      cmd_ (Cwd src) cmake "--build" buildEnvBuildDir
+      cmd_ (Cwd src) cmakeEnvOptions cmake "--build" buildEnvBuildDir
       when doInstall $
         cmd_ (Cwd src) cmake "--install" buildEnvBuildDir
       unBuildActionABI postBuildEachABI q bEnv
