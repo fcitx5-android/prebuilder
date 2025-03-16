@@ -53,7 +53,6 @@
 [submodule "libime"]
 	path = libime
 	url = https://github.com/fcitx/libime
-	fetchRecurseSubmodules = true
 [submodule "libime-jyutping"]
 	path = libime-jyutping
 	url = https://github.com/fcitx/libime-jyutping
