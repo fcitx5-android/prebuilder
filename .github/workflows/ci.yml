@@ -12,7 +12,7 @@ jobs:
     env:
       ABI: "armeabi-v7a,arm64-v8a,x86,x86_64"
       NDK_VERSION: "28.0.13004108"
-      CMAKE_VERSION: "3.31.1"
+      CMAKE_VERSION: "3.31.6"
       ANDROID_PLATFORM: "23"
 
     steps:
