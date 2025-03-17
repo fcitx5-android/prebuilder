@@ -51,6 +51,12 @@ librimeRule = do
               "-DBUILD_TEST=OFF",
               "-DBUILD_TOOLS=OFF",
               "-DALSO_LOG_TO_STDERR=ON",
+              "-DCMAKE_CXX_FLAGS="
+                <> intercalate
+                  " "
+                  -- disable boost's inline asm gdb_debug_scripts
+                  [ "-DBOOST_ALL_NO_EMBEDDED_GDB_SCRIPTS"
+                  ],
               "-DCMAKE_FIND_ROOT_PATH="
                 <> intercalate
                   ";"
@@ -66,17 +72,7 @@ librimeRule = do
                       ]
                       <> ["."]
                   )
-            ],
-          cmakeEnv =
-            const
-              -- disable inline asm debug_gdb_scripts
-              [ ("CXXFLAGS", intercalate " " 
-                  [ "-DBOOST_ALL_NO_EMBEDDED_GDB_SCRIPTS",
-                    "-DBOOST_OUTCOME_SYSTEM_ERROR2_DISABLE_INLINE_GDB_PRETTY_PRINTERS",
-                    "-DBOOST_JSON_DEBUG_PRINTERS_HPP"
-                  ]
-                ) 
-              ]
+            ]
         }
   "librime" ~> do
     need
