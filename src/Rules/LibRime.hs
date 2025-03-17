@@ -66,7 +66,12 @@ librimeRule = do
                       ]
                       <> ["."]
                   )
-            ]
+            ],
+          cmakeEnv =
+            const
+              -- disable inline asm debug_gdb_scripts
+              [ ("CXXFLAGS", "-DBOOST_ALL_NO_EMBEDDED_GDB_SCRIPTS") 
+              ]
         }
   "librime" ~> do
     need
