@@ -18,10 +18,11 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 28c6df256..3ec932e54 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -277,6 +277,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+@@ -277,6 +277,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         src/unix/random-getentropy.c
         src/unix/random-getrandom.c
         src/unix/random-sysctl-linux.c)
++  list(APPEND uv_defines LLONG_MAX=0x7fffffffffffffffLL)
 +  if(ANDROID_PLATFORM_LEVEL LESS 24)
 +    list(APPEND uv_sources
 +        src/unix/android-ifaddrs.c)
@@ -841,15 +842,4 @@ index 857a4ef8a..9deec0ef5 100644
  #include <netpacket/packet.h>
 -- 
 2.47.0
-
-
--- 
---- a/src/unix/linux.c
-+++ b/src/unix/linux.c
-@@ -26,4 +26,5 @@
- #include "uv.h"
- #include "internal.h"
-
-+# define LLONG_MAX   0x7fffffffffffffffLL
- #include <inttypes.h>
 
