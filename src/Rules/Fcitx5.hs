@@ -42,7 +42,10 @@ hostFcitx5Rule = do
       [ "Fcitx5Utils",
         "comp-spell-dict"
       ]
+    -- ignore install errors
     Exit _ <- cmd "cmake" "--install" (fcitx5Src </> "build-host")
+    -- install "comp-spell-dict" manually
+    copyFile' (fcitx5Src </> "build-host" </> "bin" </> "comp-spell-dict") $ outputDir </> "bin" </> "comp-spell-dict"
     pure ()
 
 --------------------------------------------------------------------------------
@@ -56,7 +59,7 @@ spellDictRule = do
     tar <- download fcitxDataUrl src sha256
     cmd_ "tar" "xf" tar "-C" outputDir (takeFileName out)
   outputDir </> "en_dict.fscd" %> \out -> do
-    let compSpellDict = outputDir </> "lib" </> "fcitx5" </> "libexec" </> "comp-spell-dict"
+    let compSpellDict = outputDir </> "bin" </> "comp-spell-dict"
     let src = outputDir </> "en_dict.txt"
     need [src, "host-fcitx5"]
     cmd_ compSpellDict "--comp-dict" [src, out]
