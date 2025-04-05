@@ -102,6 +102,67 @@ main = do
         need artifacts
         writeFileLines (outputDir </> "artifacts.txt") ("toolchain-versions.json" : artifacts)
         getToolchainVersions >>= writeFile' (outputDir </> "toolchain-versions.json") . TL.unpack . TLB.toLazyText . A.encodePrettyToTextBuilder
+      "fcitx5" ~> do
+        need
+          [ "fmt",
+            "libuv",
+            "libintl-lite"
+          ]
+      "app" ~> do
+        need
+          [ "fcitx5",
+            "spell-dict",
+            "libime",
+            "chinese-addons-data",
+            "lua",
+            "opencc",
+            "boost",
+            "zstd"
+          ]
+      "anthy" ~> do
+        need
+          [ "fcitx5",
+            "anthy-dict"
+          ]
+      "chewing" ~> do
+        need
+          [ "fcitx5",
+            "libchewing",
+            "chewing-dict"
+          ]
+      "hangul" ~> do
+        need
+          [ "fcitx5",
+            "libhangul"
+          ]
+      "jyutping" ~> do
+        need
+          [ "fcitx5",
+            "libime-jyutping",
+            "lua",
+            "opencc",
+            "boost",
+            "zstd"
+          ]
+      "rime" ~> do
+        need
+          [ "fcitx5",
+            "librime"
+          ]
+      "sayura" ~> do
+        need
+          [ "fcitx5"
+          ]
+      "thai" ~> do
+        need
+          [ "fcitx5",
+            "libthai",
+            "libiconv"
+          ]
+      "unikey" ~> do
+        need
+          [ "fcitx5"
+          ]
       "clean" ~> do
         removeFilesAfter outputDir ["//*"]
         cmd_ "git" "submodule" "foreach" "--recursive" "git" "reset" "--hard"
