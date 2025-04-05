@@ -17,23 +17,26 @@ jyutpingToolsRule = do
   "libime-jyutping-tools" ~> do
     need ["libime-tools"]
     let libIMEJyutpingSrc = "libime-jyutping"
+    let buildDir = outputDir </> "libime-jyutping-build-host"
+    let hostPrefix = outputDir </> "host"
     cmd_
       "cmake"
       "-B"
-      (libIMEJyutpingSrc </> "build-host")
+      buildDir
       "-G"
       "Ninja"
       [ "-DCMAKE_BUILD_TYPE=Release",
-        "-DCMAKE_INSTALL_PREFIX=" <> outputDir,
-        "-DCMAKE_PREFIX_PATH=" <> outputDir,
+        "-DCMAKE_INSTALL_PREFIX=" <> hostPrefix,
+        "-DCMAKE_FIND_ROOT_PATH=" <> hostPrefix,  -- for find_package
+        "-DCMAKE_PREFIX_PATH=" <> hostPrefix,     -- for pkg_check_modules
         "-DENABLE_TEST=OFF",
         "-DENABLE_ENGINE=OFF"
       ]
       libIMEJyutpingSrc
-    cmd_ "cmake" "--build" (libIMEJyutpingSrc </> "build-host") "--target" "libime_jyutpingdict"
+    cmd_ "cmake" "--build" buildDir "--target" "libime_jyutpingdict"
     -- ignore install errors
-    Exit _ <- cmd "cmake" "--install" (libIMEJyutpingSrc </> "build-host") "--component" "lib"
-    Exit _ <- cmd "cmake" "--install" (libIMEJyutpingSrc </> "build-host") "--component" "tools"
+    Exit _ <- cmd "cmake" "--install" buildDir "--component" "lib"
+    Exit _ <- cmd "cmake" "--install" buildDir "--component" "tools"
     pure ()
 
 jyutpingDictRule :: Rules ()

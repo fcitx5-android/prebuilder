@@ -4,8 +4,6 @@ on:
   push:
     branches: [master]
   pull_request:
-  workflow_dispatch:
-  repository_dispatch:
 
 jobs:
   build:
@@ -22,7 +20,7 @@ jobs:
         run: |
           pacman -Syu --needed --noconfirm \
             git unzip ghc cabal-install haskell-shake haskell-aeson-pretty \
-            cmake extra-cmake-modules ninja fmt fcitx5 boost python opencc jre-openjdk gperf
+            cmake extra-cmake-modules ninja boost python opencc jre-openjdk gperf
 
       - name: Fetch source code
         uses: actions/checkout@v4

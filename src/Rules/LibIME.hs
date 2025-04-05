@@ -37,22 +37,25 @@ libIMEToolsRule = do
            "host-fcitx5"
          ]
     let libIMESrc = "libime"
+    let buildDir = outputDir </> "libime-build-host"
+    let hostPrefix = outputDir </> "host"
     cmd_
       "cmake"
       "-B"
-      (libIMESrc </> "build-host")
+      buildDir
       "-G"
       "Ninja"
       [ "-DCMAKE_BUILD_TYPE=Release",
-        "-DCMAKE_INSTALL_PREFIX=" <> outputDir,
-        "-DCMAKE_FIND_ROOT_PATH=" <> outputDir,
+        "-DCMAKE_INSTALL_PREFIX=" <> hostPrefix,
+        "-DCMAKE_FIND_ROOT_PATH=" <> hostPrefix,  -- for find_package
+        "-DCMAKE_PREFIX_PATH=" <> hostPrefix,     -- for pkg_check_modules
         "-DENABLE_TEST=OFF"
       ]
       libIMESrc
     cmd_
       "cmake"
       "--build"
-      (libIMESrc </> "build-host")
+      buildDir
       "--target"
       [ "libime_slm_build_binary",
         "libime_prediction",
@@ -61,10 +64,10 @@ libIMEToolsRule = do
         "libime_tabledict"
       ]
     -- ignore install errors
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "lib"
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "header"
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "tools"
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "Devel"
+    Exit _ <- cmd "cmake" "--install" buildDir "--component" "lib"
+    Exit _ <- cmd "cmake" "--install" buildDir "--component" "header"
+    Exit _ <- cmd "cmake" "--install" buildDir "--component" "tools"
+    Exit _ <- cmd "cmake" "--install" buildDir "--component" "Devel"
     pure ()
 
 --------------------------------------------------------------------------------
