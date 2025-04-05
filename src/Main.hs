@@ -16,7 +16,6 @@ import Development.Shake.Config
 import Rules.AnthyData
 import Rules.Boost
 import Rules.Fcitx5
-import Rules.Fmt
 import Rules.GLog
 import Rules.LevelDB
 import Rules.LibChewing
@@ -54,7 +53,6 @@ main = do
       libIMERule
       chineseAddonsRule
       libIMEJyutpingRule
-      fmtRule
       libuvRule
       libintlLiteRule
       luaRule
@@ -78,7 +76,6 @@ main = do
         let artifacts =
               [ "spell-dict",
                 "libime",
-                "fmt",
                 "chinese-addons-data",
                 "libime-jyutping",
                 "libuv",
@@ -104,8 +101,7 @@ main = do
         getToolchainVersions >>= writeFile' (outputDir </> "toolchain-versions.json") . TL.unpack . TLB.toLazyText . A.encodePrettyToTextBuilder
       "fcitx5" ~> do
         need
-          [ "fmt",
-            "libuv",
+          [ "libuv",
             "libintl-lite"
           ]
       "app" ~> do

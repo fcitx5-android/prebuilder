@@ -25,7 +25,6 @@ executable prebuilder
     Rules.AnthyData
     Rules.Boost
     Rules.Fcitx5
-    Rules.Fmt
     Rules.GLog
     Rules.LevelDB
     Rules.LibChewing
