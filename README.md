@@ -26,7 +26,6 @@ both can be installed with `sdkmanager` command line tool.
 ## Libraries
 
 * boost: [moritz-wundke/Boost-for-Android](https://github.com/moritz-wundke/Boost-for-Android)
-* fmt: [fmtlib/fmt](https://github.com/fmtlib/fmt)
 * libevent: [libevent/libevent](https://github.com/libevent/libevent/tree/release-2.1.12-stable)
 * libintl-lite: [j-jorge/libintl-lite](https://github.com/j-jorge/libintl-lite)
 * libime data: [fcitx/libime](https://github.com/fcitx/libime)
