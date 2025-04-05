@@ -17,12 +17,13 @@ jobs:
 
     steps:
       - name: Install build dependencies
+        # android-actions/setup-android needs unzip
+        # sdkmanager needs jre
         run: |
           pacman -Syu --needed --noconfirm \
-            git \
+            git unzip jre-openjdk \
             ghc cabal-install haskell-shake haskell-aeson-pretty \
             cmake extra-cmake-modules ninja \
-            jre-openjdk \
             boost \
             python opencc \
             gperf
