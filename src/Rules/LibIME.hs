@@ -33,24 +33,26 @@ libIMERule = do
 libIMEToolsRule :: Rules ()
 libIMEToolsRule = do
   "libime-tools" ~> do
-    need ["host-libzstd"]
+    need [ "host-libzstd",
+           "host-fcitx5"
+         ]
     let libIMESrc = "libime"
     cmd_
       "cmake"
       "-B"
-      (libIMESrc </> "build")
+      (libIMESrc </> "build-host")
       "-G"
       "Ninja"
       [ "-DCMAKE_BUILD_TYPE=Release",
         "-DCMAKE_INSTALL_PREFIX=" <> outputDir,
-        "-DCMAKE_PREFIX_PATH=" <> outputDir,
+        "-DCMAKE_FIND_ROOT_PATH=" <> outputDir,
         "-DENABLE_TEST=OFF"
       ]
       libIMESrc
     cmd_
       "cmake"
       "--build"
-      (libIMESrc </> "build")
+      (libIMESrc </> "build-host")
       "--target"
       [ "libime_slm_build_binary",
         "libime_prediction",
@@ -59,10 +61,10 @@ libIMEToolsRule = do
         "libime_tabledict"
       ]
     -- ignore install errors
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build") "--component" "lib"
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build") "--component" "header"
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build") "--component" "tools"
-    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build") "--component" "Devel"
+    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "lib"
+    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "header"
+    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "tools"
+    Exit _ <- cmd "cmake" "--install" (libIMESrc </> "build-host") "--component" "Devel"
     pure ()
 
 --------------------------------------------------------------------------------

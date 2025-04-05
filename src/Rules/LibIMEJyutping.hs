@@ -15,12 +15,12 @@ libIMEJyutpingRule = do
 jyutpingToolsRule :: Rules ()
 jyutpingToolsRule = do
   "libime-jyutping-tools" ~> do
-    need ["libime-tools", "host-libzstd"]
+    need ["libime-tools"]
     let libIMEJyutpingSrc = "libime-jyutping"
     cmd_
       "cmake"
       "-B"
-      (libIMEJyutpingSrc </> "build")
+      (libIMEJyutpingSrc </> "build-host")
       "-G"
       "Ninja"
       [ "-DCMAKE_BUILD_TYPE=Release",
@@ -30,10 +30,10 @@ jyutpingToolsRule = do
         "-DENABLE_ENGINE=OFF"
       ]
       libIMEJyutpingSrc
-    cmd_ "cmake" "--build" (libIMEJyutpingSrc </> "build") "--target" "libime_jyutpingdict"
+    cmd_ "cmake" "--build" (libIMEJyutpingSrc </> "build-host") "--target" "libime_jyutpingdict"
     -- ignore install errors
-    Exit _ <- cmd "cmake" "--install" (libIMEJyutpingSrc </> "build") "--component" "lib"
-    Exit _ <- cmd "cmake" "--install" (libIMEJyutpingSrc </> "build") "--component" "tools"
+    Exit _ <- cmd "cmake" "--install" (libIMEJyutpingSrc </> "build-host") "--component" "lib"
+    Exit _ <- cmd "cmake" "--install" (libIMEJyutpingSrc </> "build-host") "--component" "tools"
     pure ()
 
 jyutpingDictRule :: Rules ()

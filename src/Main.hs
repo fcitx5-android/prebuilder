@@ -15,7 +15,7 @@ import Data.Text.Lazy.Builder qualified as TLB
 import Development.Shake.Config
 import Rules.AnthyData
 import Rules.Boost
-import Rules.Fcitx5Data
+import Rules.Fcitx5
 import Rules.Fmt
 import Rules.GLog
 import Rules.LevelDB
@@ -49,6 +49,7 @@ main = do
       want files
       usingConfigFile "build.cfg"
       downloadFileRule
+      hostFcitx5Rule
       spellDictRule
       libIMERule
       chineseAddonsRule
