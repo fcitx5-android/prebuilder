@@ -41,14 +41,16 @@ hostLibzstdRule :: Rules ()
 hostLibzstdRule = do
   "host-libzstd" ~> do
     let zstdSrc = "zstd"
+    let buildDir = outputDir </> "zstd-build-host"
+    let hostPrefix = outputDir </> "host"
     cmd_
       "cmake"
       "-B"
-      (zstdSrc </> "build-host")
+      buildDir
       "-G"
       "Ninja"
       [ "-DCMAKE_BUILD_TYPE=Release",
-        "-DCMAKE_INSTALL_PREFIX=" <> outputDir,
+        "-DCMAKE_INSTALL_PREFIX=" <> hostPrefix,
         "-DZSTD_LEGACY_SUPPORT=OFF",
         "-DZSTD_BUILD_PROGRAMS=OFF",
         "-DZSTD_BUILD_TESTS=OFF"
@@ -57,8 +59,8 @@ hostLibzstdRule = do
     cmd_
       "cmake"
       "--build"
-      (zstdSrc </> "build-host")
+      buildDir
     cmd_
       "cmake"
       "--install"
-      (zstdSrc </> "build-host")
+      buildDir

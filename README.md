@@ -6,13 +6,22 @@ Build static libraries for [fcitx5-android](https://github.com/fcitx5-android/fc
 
 Cabal is required to build this project.
 
-* NDK Vesion: `25.2.9519653`
-* CMake Version: `3.22.1`
+### Android related
+
 * Android Platform (API Level): `23`
-* `bash tar unzip curl git python ghc haskell-shake haskell-aeson-pretty cabal-install`
-* `fcitx5` (`fcitx5-modules` on Debian): for `comp-spell-dict`
-* `libime` (`libime-bin` on Debian) >= 1.0.5 : for various `libime_*` tools
+* Android NDK: `28.0.13004108`
+* CMake Version: `3.31.6`
+
+both can be installed with `sdkmanager` command line tool.
+
+### System dependencies
+
+* `tar curl git`
+* `ghc haskell-shake haskell-aeson-pretty cabal-install`: haskell stuff
+* `cmake extra-cmake-modules ninja`: cmake stuff
+* `python`: build dep of `opencc`
 * `opencc`: for `opencc_dict`
+* `gperf`: build dep of `libiconv`
 
 ## Libraries
 

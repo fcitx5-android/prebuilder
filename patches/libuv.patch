@@ -18,10 +18,11 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 28c6df256..3ec932e54 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -277,6 +277,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+@@ -277,6 +277,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         src/unix/random-getentropy.c
         src/unix/random-getrandom.c
         src/unix/random-sysctl-linux.c)
++  list(APPEND uv_defines LLONG_MAX=0x7fffffffffffffffLL)
 +  if(ANDROID_PLATFORM_LEVEL LESS 24)
 +    list(APPEND uv_sources
 +        src/unix/android-ifaddrs.c)

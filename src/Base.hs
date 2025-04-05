@@ -173,8 +173,8 @@ execute :: String -> (CmdArguments args) => args :-> Action ()
 execute tool =
   cmdArguments
     ( CmdArgument
-        [ Right (outputDir </> "bin" </> tool),
-          Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "lib"))
+        [ Right (outputDir </> "host" </> "bin" </> tool),
+          Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "host"  </> "lib"))
         ]
     )
 
