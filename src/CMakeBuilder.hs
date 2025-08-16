@@ -113,13 +113,14 @@ useCMake CmakeBuilder {..} = addOracle $ \(WithAndroidEnv q env) -> do
       let cmakeEnvOptions = [AddEnv k v | (k, v) <- cmakeEnv bEnv]
       cmd_
         (Cwd src)
-        (AddPath [] [ninja])
         cmakeEnvOptions
         cmake
         "-B"
         buildEnvBuildDir
-        "-GNinja"
+        "-G"
+        "Ninja"
         ( [ "-DCMAKE_TOOLCHAIN_FILE=" <> toolchain,
+            "-DCMAKE_MAKE_PROGRAM=" <> ninja,
             "-DANDROID_ABI=" <> a,
             "-DANDROID_PLATFORM=" <> show (platform env),
             "-DANDROID_STL=c++_shared",

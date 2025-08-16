@@ -119,7 +119,7 @@ getSdkCMake :: AndroidEnv -> FilePath
 getSdkCMake AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCMakeVersion </> "bin" </> "cmake"
 
 getSdkNinja :: AndroidEnv -> FilePath
-getSdkNinja AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCMakeVersion </> "bin"
+getSdkNinja AndroidEnv {..} = sdkRoot </> "cmake" </> sdkCMakeVersion </> "bin" </> "ninja"
 
 getABIList :: AndroidEnv -> [String]
 getABIList AndroidEnv {..} = split (== ',') abi
