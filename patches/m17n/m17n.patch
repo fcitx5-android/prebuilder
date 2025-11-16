@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9470e82..89c4632 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -20,8 +20,8 @@ set(m17n_srcs
+ )
+ list(TRANSFORM m17n_srcs PREPEND "m17n-lib/src/")
+ 
+-add_library(m17n ${m17n_srcs})
+-target_include_directories(m17n PRIVATE ${PROJECT_SOURCE_DIR} m17n-lib/src)
++add_library(m17n ${m17n_srcs} "${PROJECT_SOURCE_DIR}/../patches/m17n/glob.c")
++target_include_directories(m17n PRIVATE ${PROJECT_SOURCE_DIR} m17n-lib/src "${PROJECT_SOURCE_DIR}/../patches/m17n")
+ 
+ install(FILES
+     m17n-lib/src/m17n-core.h

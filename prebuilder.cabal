@@ -37,6 +37,7 @@ executable prebuilder
     Rules.LibRime
     Rules.LibThai
     Rules.Lua
+    Rules.M17n
     Rules.Marisa
     Rules.OpenCC
     Rules.YAMLCpp
