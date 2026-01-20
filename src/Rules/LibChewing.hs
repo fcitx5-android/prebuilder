@@ -76,5 +76,6 @@ libchewingRule = do
     copyFile' (dictSrcDir </> "symbols.dat") (dictOutputDir </> "symbols.dat")
 
   "libchewing" ~> do
-    need ["chewing-dict"]
+    -- comment out for test
+    -- need ["chewing-dict"]
     buildWithAndroidEnv buildLibchewing LibChewing
