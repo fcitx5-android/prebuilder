@@ -28,3 +28,4 @@ index 4c175c1..783abfb 100644
  
  # generate CMake Config files
  include(CMakePackageConfigHelpers)
+ 
