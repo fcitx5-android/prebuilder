@@ -25,7 +25,7 @@ libchewingRule = do
         { preBuild = BuildAction $ \_ src -> do
             -- install rust
             cmd_ Shell "rustup toolchain install $RUST_VERSION"
-            cmd_ Shell "rustup target add thumbv7neon-linux-androideabi"
+            cmd_ Shell "rustup target add armv7-linux-androideabi"
             cmd_ Shell "rustup target add aarch64-linux-android"
             cmd_ Shell "rustup target add i686-linux-android"
             cmd_ Shell "rustup target add x86_64-linux-android"
