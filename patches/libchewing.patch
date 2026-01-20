@@ -11,15 +11,6 @@ index 4c175c1..783abfb 100644
  
  if(WITH_SQLITE3)
      corrosion_set_features(chewing_capi FEATURES sqlite)
-@@ -242,7 +252,7 @@ endif()
- install(FILES ${ALL_INC} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/chewing)
- install(FILES ${PROJECT_BINARY_DIR}/chewing.pc
-     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
--install(TARGETS libchewing
-+install(TARGETS chewing_capi
-     EXPORT libchewingTargets
-     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 @@ -261,7 +271,6 @@ if(BUILD_DATA)
      )
  endif()
