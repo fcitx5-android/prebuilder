@@ -49,14 +49,14 @@ jobs:
         with:
           packages: "ndk;${{ env.NDK_VERSION }} cmake;${{ env.CMAKE_VERSION }}"
 
-      - name: Build everything
+      - name: Build libchewing (for PR test only)
         env:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
           RUST_VERSION: ${{ env.RUST_VERSION }}
         run: |
           # use archlinux's dynamic only ghc
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
-          ./build-cabal -j everything
+          ./build-cabal -j libchewing
 
       - name: Pack prebuilt libraries
         if: github.event_name == 'pull_request'
