@@ -65,3 +65,9 @@
 [submodule "fcitx5"]
 	path = fcitx5
 	url = https://github.com/fcitx/fcitx5
+[submodule "m17n-cmake"]
+	path = m17n-cmake
+	url = https://github.com/fcitx-contrib/m17n-cmake
+[submodule "glibc"]
+	path = glibc
+	url = https://github.com/bminor/glibc

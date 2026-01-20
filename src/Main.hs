@@ -28,6 +28,7 @@ import Rules.LibIntlLite
 import Rules.LibRime
 import Rules.LibThai
 import Rules.Lua
+import Rules.M17n
 import Rules.Marisa
 import Rules.OpenCC
 import Rules.YAMLCpp
@@ -63,6 +64,7 @@ main = do
       glogRule
       yamlCppRule
       leveldbRule
+      m17nRule
       marisaRule
       librimeRule
       libhangulRule
@@ -87,6 +89,8 @@ main = do
                 "glog",
                 "yaml-cpp",
                 "leveldb",
+                "m17n-db",
+                "m17n-lib",
                 "marisa",
                 "librime",
                 "libhangul",
@@ -139,6 +143,12 @@ main = do
             "opencc",
             "boost",
             "zstd"
+          ]
+      "m17n" ~> do
+        need
+          [ "fcitx5",
+            "m17n-db",
+            "m17n-lib"
           ]
       "rime" ~> do
         need
