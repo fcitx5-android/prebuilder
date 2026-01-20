@@ -65,3 +65,6 @@
 [submodule "fcitx5"]
 	path = fcitx5
 	url = https://github.com/fcitx/fcitx5
+[submodule "fmt"]
+	path = fmt
+	url = https://github.com/fmtlib/fmt.git

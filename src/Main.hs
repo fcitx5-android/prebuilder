@@ -48,6 +48,7 @@ main = do
       want files
       usingConfigFile "build.cfg"
       downloadFileRule
+      hostFmtRule
       hostFcitx5Rule
       spellDictRule
       libIMERule
