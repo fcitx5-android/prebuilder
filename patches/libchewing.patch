@@ -1,50 +1,30 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ae1d14b7..5d03df35 100644
+index 4c175c1..783abfb 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1,2 +1,2 @@
--cmake_minimum_required(VERSION 3.24.0)
-+cmake_minimum_required(VERSION 3.22.1)
- project(libchewing LANGUAGES C)
-@@ -216,8 +216,6 @@ if(WITH_RUST)
-     list(APPEND ALL_INC ${INC_DIR}/chewing_rs.h)
- endif()
- 
--add_subdirectory(doc)
--add_subdirectory(data)
+@@ -77,7 +77,8 @@ corrosion_import_crate(MANIFEST_PATH Cargo.toml CRATES chewing_capi)
  if(BUILD_TESTING)
-     add_subdirectory(tests)
+     corrosion_import_crate(MANIFEST_PATH Cargo.toml CRATES chewing_testhelper)
  endif()
-@@ -228,14 +226,20 @@ add_library(common OBJECT
+ corrosion_import_crate(MANIFEST_PATH Cargo.toml CRATES chewing-cli)
++corrosion_add_target_rustflags(chewing_capi "--remap-path-prefix=${PROJECT_SOURCE_DIR}=.")
  
-     src/porting_layer/src/asprintf.c
- )
-+target_compile_options(common PRIVATE
-+    "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=."
-+)
- target_compile_definitions(common PRIVATE
--    CHEWING_DATADIR=\"${CMAKE_INSTALL_FULL_DATADIR}/libchewing\"
-+    CHEWING_DATADIR=\"./libchewing\"
- )
+ if(WITH_SQLITE3)
+     corrosion_set_features(chewing_capi FEATURES sqlite)
+@@ -242,7 +252,7 @@ endif()
+ install(FILES ${ALL_INC} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/chewing)
+ install(FILES ${PROJECT_BINARY_DIR}/chewing.pc
+     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+-install(TARGETS libchewing
++install(TARGETS chewing_capi
+     EXPORT libchewingTargets
+     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+@@ -261,7 +271,6 @@ if(BUILD_DATA)
+     )
+ endif()
  
- add_library(libchewing ${ALL_INC} src/chewing.c)
- set_target_properties(libchewing PROPERTIES LINKER_LANGUAGE C)
-+target_compile_options(libchewing PRIVATE
-+    "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=."
-+)
- target_compile_definitions(libchewing PRIVATE
--    CHEWING_DATADIR=\"${CMAKE_INSTALL_FULL_DATADIR}/libchewing\"
-+    CHEWING_DATADIR=\"./libchewing\"
- )
- if(NOT WITH_RUST)
-     target_sources(common PRIVATE
-@@ -288,6 +292,9 @@ if(NOT WITH_RUST)
-             ${SRC_DIR}/userphrase-hash.c
-         )
-     endif()
-+    target_compile_options(userphrase PRIVATE
-+        "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=."
-+    )
-     target_link_libraries(libchewing
-         PRIVATE common
-         PRIVATE userphrase)
+-install(IMPORTED_RUNTIME_ARTIFACTS chewing-cli DESTINATION ${CMAKE_INSTALL_BINDIR})
+ 
+ # generate CMake Config files
+ include(CMakePackageConfigHelpers)

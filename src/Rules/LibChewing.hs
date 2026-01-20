@@ -23,6 +23,12 @@ libchewingRule = do
     useCMake $
       (cmakeBuilder "libchewing")
         { preBuild = BuildAction $ \_ src -> do
+            -- install rust
+            cmd_ Shell "rustup toolchain install $RUST_VERSION"
+            cmd_ Shell "rustup target add thumbv7neon-linux-androideabi"
+            cmd_ Shell "rustup target add aarch64-linux-android"
+            cmd_ Shell "rustup target add i686-linux-android"
+            cmd_ Shell "rustup target add x86_64-linux-android"
             -- CMakeLists is changed in last build
             cmd_ (Cwd src) Shell "git checkout ."
             -- skip data and shared lib
@@ -30,13 +36,13 @@ libchewingRule = do
             -- remove absolute path by CHEWING_DATADIR macro
             -- remove absolute path by __FILE__ macro
             cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
-            cmakeFlags =
-              const 
-                [ "-DBUILD_SHARED_LIBS=OFF",
-                  "-DBUILD_TESTING=OFF",
-                  "-DWITH_SQLITE3=OFF",
-                  "-DWITH_RUST=OFF"
-                ]
+          cmakeFlags =
+            const 
+              [ "-DBUILD_SHARED_LIBS=OFF",
+                "-DBUILD_TESTING=OFF",
+                "-DWITH_SQLITE3=OFF",
+                "-DWITH_RUST=OFF"
+              ]
         }
 
   "chewing-dict" ~> do
