@@ -41,8 +41,8 @@ libchewingRule = do
               [ "-DBUILD_SHARED_LIBS=OFF",
                 "-DBUILD_TESTING=OFF",
                 "-DBUILD_DATA=OFF",
-                "-DBUILD_DOC=OFF"
-                "-DWITH_SQLITE3=OFF",
+                "-DBUILD_DOC=OFF",
+                "-DWITH_SQLITE3=OFF"
               ]
         }
 
