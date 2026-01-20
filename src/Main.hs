@@ -75,28 +75,29 @@ main = do
       getOutputDirRule
       "everything" ~> do
         let artifacts =
-              [ "spell-dict",
-                "libime",
-                "chinese-addons-data",
-                "libime-jyutping",
-                "libuv",
-                "libintl-lite",
-                "lua",
-                "opencc",
-                "boost",
-                "zstd",
-                "glog",
-                "yaml-cpp",
-                "leveldb",
-                "marisa",
-                "librime",
-                "libhangul",
-                "chewing-dict",
-                "libchewing",
-                "libthai",
-                "libiconv",
-                "anthy-dict"
-              ]
+              [ "libchewing" ]
+              -- [ "spell-dict",
+              --   "libime",
+              --   "chinese-addons-data",
+              --   "libime-jyutping",
+              --   "libuv",
+              --   "libintl-lite",
+              --   "lua",
+              --   "opencc",
+              --   "boost",
+              --   "zstd",
+              --   "glog",
+              --   "yaml-cpp",
+              --   "leveldb",
+              --   "marisa",
+              --   "librime",
+              --   "libhangul",
+              --   "chewing-dict",
+              --   "libchewing",
+              --   "libthai",
+              --   "libiconv",
+              --   "anthy-dict"
+              -- ]
         need artifacts
         writeFileLines (outputDir </> "artifacts.txt") ("toolchain-versions.json" : artifacts)
         getToolchainVersions >>= writeFile' (outputDir </> "toolchain-versions.json") . TL.unpack . TLB.toLazyText . A.encodePrettyToTextBuilder
