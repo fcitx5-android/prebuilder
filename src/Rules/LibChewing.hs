@@ -24,17 +24,15 @@ libchewingRule = do
       (cmakeBuilder "libchewing")
         { preBuild = BuildAction $ \_ src -> do
             -- install rust
+            -- TODO: add target only before building in preBuildEachABI
             cmd_ Shell "rustup toolchain install $RUST_VERSION"
             cmd_ Shell "rustup target add armv7-linux-androideabi"
             cmd_ Shell "rustup target add aarch64-linux-android"
             cmd_ Shell "rustup target add i686-linux-android"
             cmd_ Shell "rustup target add x86_64-linux-android"
-            -- CMakeLists is changed in last build
+            -- CMakeLists.txt changed in last build
             cmd_ (Cwd src) Shell "git checkout ."
-            -- skip data and shared lib
-            -- merge libuserphrase.a into libchewing.a
-            -- remove absolute path by CHEWING_DATADIR macro
-            -- remove absolute path by __FILE__ macro
+            -- disable data/doc, remove absolute path, optimize library size
             cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
           cmakeFlags =
             const 
@@ -56,10 +54,9 @@ libchewingRule = do
       libchewingBuildHost
       "-G"
       "Ninja"
-      [ "-DBUILD_SHARED_LIBS=OFF",
-        "-DBUILD_TESTING=OFF",
+      [ "-DBUILD_TESTING=OFF",
         "-DWITH_SQLITE3=OFF",
-        "-DWITH_RUST=OFF"
+        "-DBUILD_DOC=OFF"
       ]
       libchewingSrc
     cmd_
@@ -67,16 +64,14 @@ libchewingRule = do
       "--build"
       libchewingBuildHost
       "--target"
-      [ "data",
-        "all_static_data"
+      [ "dict_chewing",
+        "misc"
       ]
-    copyFile' (dictSrcDir </> "dictionary.dat") (dictOutputDir </> "dictionary.dat")
-    copyFile' (dictSrcDir </> "index_tree.dat") (dictOutputDir </> "index_tree.dat")
-    copyFile' (dictSrcDir </> "pinyin.tab") (dictOutputDir </> "pinyin.tab")
-    copyFile' (dictSrcDir </> "swkb.dat") (dictOutputDir </> "swkb.dat")
-    copyFile' (dictSrcDir </> "symbols.dat") (dictOutputDir </> "symbols.dat")
+    copyFile' (dictSrcDir </> "dict" </> "chewing" </> "tsi.dat") (dictOutputDir </> "tsi.dat")
+    copyFile' (dictSrcDir </> "dict" </> "chewing" </> "word.dat") (dictOutputDir </> "word.dat")
+    copyFile' (dictSrcDir </> "misc" </> "swkb.dat") (dictOutputDir </> "swkb.dat")
+    copyFile' (dictSrcDir </> "misc" </> "symbols.dat") (dictOutputDir </> "symbols.dat")
 
   "libchewing" ~> do
-    -- comment out for test
-    -- need ["chewing-dict"]
+    need ["chewing-dict"]
     buildWithAndroidEnv buildLibchewing LibChewing

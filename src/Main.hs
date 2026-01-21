@@ -75,7 +75,7 @@ main = do
       getOutputDirRule
       "everything" ~> do
         let artifacts =
-              [ "libchewing" ]
+              [ "chewing-dict", "libchewing" ]
               -- [ "spell-dict",
               --   "libime",
               --   "chinese-addons-data",

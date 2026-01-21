@@ -43,6 +43,8 @@ jobs:
           git config --global --add safe.directory '*'
           # fetch libime submodule kenlm since it's not in .gitmodules
           git submodule update --init --recursive libime
+          # fetch libchewing-data submodule
+          git submodule update --init --recursive libchewing
 
       - name: Setup Android NDK
         uses: android-actions/setup-android@v3
