@@ -176,7 +176,8 @@ data ToolchainVersions = ToolchainVersions
   { prebuilderRev :: String,
     ndkVersion :: String,
     platformVersion :: Int,
-    cmakeVersion :: String
+    cmakeVersion :: String,
+    rustVersion :: String
   }
 
 instance A.ToJSON ToolchainVersions where
@@ -185,7 +186,8 @@ instance A.ToJSON ToolchainVersions where
       [ fromString "prebuilder" A..= prebuilderRev,
         fromString "ndk" A..= ndkVersion,
         fromString "platform" A..= platformVersion,
-        fromString "cmake" A..= cmakeVersion
+        fromString "cmake" A..= cmakeVersion,
+        fromString "rust" A..= rustVersion
       ]
 
 getToolchainVersions :: Action ToolchainVersions
@@ -199,4 +201,5 @@ getToolchainVersions = do
           pure $ dropWhileEnd (== ' ') ndkVersion
       | otherwise -> fail "Failed to parse Pkg.Revision"
     Nothing -> fail "Pkg.Revision not found in source.properties"
+  rustVersion <- fromMaybeM (fail "RUST_VERSION not set") (getEnv "RUST_VERSION")
   pure ToolchainVersions {..}
