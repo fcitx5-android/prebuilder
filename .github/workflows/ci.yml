@@ -14,6 +14,7 @@ jobs:
       NDK_VERSION: "28.0.13004108"
       CMAKE_VERSION: "3.31.6"
       ANDROID_PLATFORM: "23"
+      RUST_VERSION: "1.92.0"
 
     steps:
       - name: Install build dependencies
@@ -26,6 +27,7 @@ jobs:
             cmake extra-cmake-modules ninja \
             fmt boost \
             python opencc \
+            rustup \
             gperf
 
       - name: Fetch source code
@@ -41,6 +43,8 @@ jobs:
           git config --global --add safe.directory '*'
           # fetch libime submodule kenlm since it's not in .gitmodules
           git submodule update --init --recursive libime
+          # fetch libchewing-data submodule
+          git submodule update --init --recursive libchewing
 
       - name: Setup Android NDK
         uses: android-actions/setup-android@v3
@@ -50,6 +54,7 @@ jobs:
       - name: Build everything
         env:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+          RUST_VERSION: ${{ env.RUST_VERSION }}
         run: |
           # use archlinux's dynamic only ghc
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
