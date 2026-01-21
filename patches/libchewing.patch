@@ -54,7 +54,7 @@ index 59e012d8..48dca4c0 100644
  # generate CMake Config files
  include(CMakePackageConfigHelpers)
 diff --git a/Cargo.toml b/Cargo.toml
-index d546d772..abf57c2f 100644
+index d546d772..448f6b1d 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -41,10 +41,10 @@ tempfile = "3.10.1"
@@ -62,7 +62,7 @@ index d546d772..abf57c2f 100644
  [profile.release]
  lto = true
 -opt-level = 3
-+opt-level = "z"
++opt-level = "s"
  panic = "abort"
  codegen-units = 1
 -debug = true
