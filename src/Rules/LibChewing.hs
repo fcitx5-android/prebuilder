@@ -45,6 +45,8 @@ libchewingRule = do
         }
 
   "chewing-dict" ~> do
+    -- install rust
+    cmd_ Shell "rustup toolchain install $RUST_VERSION"
     let libchewingBuildHost = outputDir </> "libchewing-build-host"
         dictSrcDir = libchewingBuildHost </> "data"
     cmd_ (Cwd libchewingSrc) Shell "git checkout ."
