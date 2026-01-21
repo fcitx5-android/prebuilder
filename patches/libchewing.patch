@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 59e012d8..380fead5 100644
+index 59e012d8..48dca4c0 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -77,7 +77,7 @@ corrosion_import_crate(MANIFEST_PATH Cargo.toml CRATES chewing_capi)
@@ -11,6 +11,15 @@ index 59e012d8..380fead5 100644
  
  if(WITH_SQLITE3)
      corrosion_set_features(chewing_capi FEATURES sqlite)
+@@ -191,7 +191,7 @@ target_include_directories(libchewing
+ )
+ 
+ corrosion_set_env_vars(chewing_capi
+-    CHEWING_DATADIR=${CMAKE_INSTALL_FULL_DATADIR}/libchewing
++    CHEWING_DATADIR="./libchewing"
+ )
+ target_link_libraries(libchewing PRIVATE chewing_capi)
+ target_link_libraries(chewing_capi INTERFACE ${SQLite3_LIBRARIES})
 @@ -239,15 +239,17 @@ else()
      )
  endif()
@@ -44,3 +53,33 @@ index 59e012d8..380fead5 100644
  
  # generate CMake Config files
  include(CMakePackageConfigHelpers)
+diff --git a/Cargo.toml b/Cargo.toml
+index d546d772..abf57c2f 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -41,10 +41,10 @@ tempfile = "3.10.1"
+ 
+ [profile.release]
+ lto = true
+-opt-level = 3
++opt-level = "z"
+ panic = "abort"
+ codegen-units = 1
+-debug = true
++debug = false
+ 
+ [package.metadata.docs.rs]
+ features = ["sqlite"]
+diff --git a/capi/Cargo.toml b/capi/Cargo.toml
+index 517dd9e2..12fefb9e 100644
+--- a/capi/Cargo.toml
++++ b/capi/Cargo.toml
+@@ -7,7 +7,7 @@ rust-version = "1.88"
+ edition = "2024"
+ 
+ [lib]
+-crate-type = ["rlib", "staticlib"]
++crate-type = ["staticlib"]
+ 
+ [dependencies]
+ chewing = { version = "0.11.0", path = ".." }
