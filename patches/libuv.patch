@@ -1,29 +1,14 @@
-From 343d4ab523816ecdb126ddcb0d8b9d6f23edac0c Mon Sep 17 00:00:00 2001
+From 6abcdf44e338898e492f1d0a583534a32d7e3701 Mon Sep 17 00:00:00 2001
 From: Rocka <i@rocka.me>
-Date: Sun, 25 Jan 2026 00:44:13 +0800
-Subject: [PATCH] android: fix build for sdk level < 24 and disable tcp
+Date: Sun, 25 Jan 2026 01:36:10 +0800
+Subject: [PATCH] android: disable ifaddrs stuff and fix build for sdk < 24
 
 ---
- CMakeLists.txt    |  4 ++++
  include/uv/unix.h |  5 +++++
- src/unix/linux.c  | 10 ++++++++++
- 3 files changed, 19 insertions(+)
+ src/unix/linux.c  | 14 ++++++++++++++
+ src/unix/tcp.c    |  4 ++--
+ 3 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 73d5aff89..e2137da54 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -252,6 +252,10 @@ else()
-        src/unix/thread.c
-        src/unix/tty.c
-        src/unix/udp.c)
-+  if(CMAKE_SYSTEM_NAME MATCHES "Android")
-+    # disable tcp on Android
-+    list(REMOVE_ITEM uv_sources src/unix/tcp.c)
-+  endif()
-   list(APPEND uv_test_sources test/runner-unix.c)
- endif()
- 
 diff --git a/include/uv/unix.h b/include/uv/unix.h
 index 7c972026f..0ed1b512c 100644
 --- a/include/uv/unix.h
@@ -41,20 +26,21 @@ index 7c972026f..0ed1b512c 100644
  #if defined(_AIX) || \
      defined(__OpenBSD__) || \
 diff --git a/src/unix/linux.c b/src/unix/linux.c
-index ea3e2de03..71a02fe21 100644
+index ea3e2de03..298cf88b0 100644
 --- a/src/unix/linux.c
 +++ b/src/unix/linux.c
-@@ -37,7 +37,9 @@
+@@ -37,7 +37,10 @@
  #include <errno.h>
  
  #include <fcntl.h>
-+#if !defined(__ANDROID__)
++#define HAS_IFADDRS (!defined(__ANDROID__) && __ANDROID_API__ < __ANDROID_API_N__)
++#if HAS_IFADDRS
  #include <ifaddrs.h>
 +#endif
  #include <net/ethernet.h>
  #include <net/if.h>
  #include <netpacket/packet.h>
-@@ -56,6 +58,11 @@
+@@ -56,6 +59,11 @@
  #include <time.h>
  #include <unistd.h>
  
@@ -66,23 +52,59 @@ index ea3e2de03..71a02fe21 100644
  #ifndef __NR_io_uring_setup
  # define __NR_io_uring_setup 425
  #endif
-@@ -1940,6 +1947,8 @@ nocpuinfo:
- }
+@@ -1941,6 +1949,8 @@ nocpuinfo:
  
  
-+// disable tcp on Android
-+#if !defined(__ANDROID__)
  static int uv__ifaddr_exclude(struct ifaddrs *ent, int exclude_type) {
++// disable ifaddrs stuff on Android
++#if HAS_IFADDRS
    if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)))
      return 1;
-@@ -2050,6 +2059,7 @@ void uv_free_interface_addresses(uv_interface_address_t* addresses,
-                                  int count) {
-   uv__free(addresses);
- }
+   if (ent->ifa_addr == NULL)
+@@ -1952,10 +1962,13 @@ static int uv__ifaddr_exclude(struct ifaddrs *ent, int exclude_type) {
+   if (ent->ifa_addr->sa_family == PF_PACKET)
+     return exclude_type;
+   return !exclude_type;
 +#endif
+ }
+ 
+ /* TODO(bnoordhuis) share with bsd-ifaddrs.c */
+ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
++// disable ifaddrs stuff on Android
++#if HAS_IFADDRS
+   uv_interface_address_t* address;
+   struct sockaddr_ll* sll;
+   struct ifaddrs* addrs;
+@@ -2042,6 +2055,7 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
+   freeifaddrs(addrs);
+ 
+   return 0;
++#endif
+ }
  
  
- void uv__set_process_title(const char* title) {
+diff --git a/src/unix/tcp.c b/src/unix/tcp.c
+index 98970d752..c39cdb030 100644
+--- a/src/unix/tcp.c
++++ b/src/unix/tcp.c
+@@ -31,7 +31,7 @@
+ #include <sys/socket.h>
+ 
+ /* ifaddrs is not implemented on AIX and IBM i PASE */
+-#if !defined(_AIX)
++#if !defined(_AIX) || !defined(__ANDROID__)
+ #include <ifaddrs.h>
+ #endif
+ 
+@@ -228,7 +228,7 @@ static int uv__is_ipv6_link_local(const struct sockaddr* addr) {
+ static int uv__ipv6_link_local_scope_id(void) {
+   struct sockaddr_in6* a6;
+   int rv;
+-#if defined(_AIX)
++#if defined(_AIX) || defined(__ANDROID__)
+   /* AIX & IBM i do not have ifaddrs
+    * so fallback to use uv_interface_addresses */
+   uv_interface_address_t* interfaces;
 -- 
 2.52.0
 
