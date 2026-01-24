@@ -1,8 +1,19 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1acb75a9..05198910 100644
+index c2e9dc70..70085eac 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -210,7 +210,8 @@ if(NOT USE_SYSTEM_MARISA)
+@@ -79,10 +79,6 @@ endif()
+ 
+ ######## Directory
+ 
+-set(LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "")
+-if(CMAKE_INSTALL_LIBDIR MATCHES "lib64$")
+-  set(LIB_SUFFIX 64)
+-endif()
+ 
+ set (DIR_PREFIX ${CMAKE_INSTALL_PREFIX})
+ set (DIR_INCLUDE ${DIR_PREFIX}/include)
+@@ -215,7 +211,8 @@ if(NOT USE_SYSTEM_MARISA)
    message(STATUS "Use bundled marisa library.")
    add_subdirectory(deps/marisa-0.2.6)
  else()
@@ -12,3 +23,20 @@ index 1acb75a9..05198910 100644
    if (LIBMARISA)
      message(STATUS "libmarisa found: ${LIBMARISA}")
    else()
+@@ -227,7 +224,6 @@ endif()
+ 
+ add_subdirectory(src)
+ add_subdirectory(doc)
+-add_subdirectory(data)
+ add_subdirectory(test)
+ 
+ ######## Testing
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 227e6c65..223553c1 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -206,4 +206,3 @@ endif()
+ 
+ # Subdir
+ 
+-add_subdirectory(tools)
