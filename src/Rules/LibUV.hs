@@ -28,8 +28,7 @@ libuvRule = do
               ],
           preBuild = BuildAction $ \_ src -> do
             cmd_ (Cwd src) "git checkout ."
-            cmd_ (Cwd src) "git clean -fd"
-            -- revive support for android api level 21
+            -- disable tcp
             cmd_ (Cwd src) "git apply ../patches/libuv.patch"
         }
   "libuv" ~> buildWithAndroidEnv buildlibuv LibUV
