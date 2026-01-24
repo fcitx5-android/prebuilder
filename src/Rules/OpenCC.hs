@@ -12,7 +12,6 @@ where
 
 import Base
 import CMakeBuilder
-import System.IO.Unsafe (unsafePerformIO)
 
 data OpenCC = OpenCC
   deriving stock (Eq, Show, Typeable, Generic)
@@ -24,7 +23,7 @@ hostOpenCCRule :: Rules ()
 hostOpenCCRule = do
   "opencc-dict" ~> do
     need [ "host-marisa" ]
-    let openccSrc = unsafePerformIO $ canonicalizePath "OpenCC"
+    openccSrc <- liftIO $ canonicalizePath "OpenCC"
     let buildDir = outputDir </> "opencc-build-host"
     let hostPrefix = outputDir </> "host"
     cmd_ Shell ("echo " <> openccSrc)

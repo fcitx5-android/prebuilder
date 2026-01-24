@@ -11,7 +11,6 @@ where
 
 import Base
 import CMakeBuilder
-import System.IO.Unsafe (unsafePerformIO)
 
 data MarisaTrie = MarisaTrie
   deriving stock (Eq, Show, Typeable, Generic)
@@ -22,7 +21,7 @@ type instance RuleResult MarisaTrie = ()
 hostMarisaRule :: Rules ()
 hostMarisaRule = do
   "host-marisa" ~> do
-    let marisaSrc = unsafePerformIO $ canonicalizePath "marisa-trie"
+    marisaSrc <- liftIO $ canonicalizePath "marisa-trie"
     let buildDir = outputDir </> "marisa-build-host"
     let hostPrefix = outputDir </> "host"
     cmd_ (Cwd marisaSrc) "git checkout ."

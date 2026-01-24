@@ -73,9 +73,8 @@ boostRule = do
                 "-DBOOST_INSTALL_LAYOUT=system"
               ],
           -- symlink headers for each abi to reduce size
-          postBuildEachABI = BuildActionABI $ \_ env -> do
-            liftIO $ do
-              createDirectoryLink (".." </> "include") (buildEnvOutPrefix env </> "include")
+          postBuildEachABI = BuildActionABI $ \_ env ->
+            liftIO $ createDirectoryLink (".." </> "include") (buildEnvOutPrefix env </> "include")
         }
   "boost" ~> do
     buildWithAndroidEnv buildBoost Boost
