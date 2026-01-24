@@ -19,14 +19,17 @@ jobs:
       - name: Install build dependencies
         # android-actions/setup-android needs unzip
         # sdkmanager needs jre
+        # libime needs boost (build host tools)
+        # opencc needs python (scripts)
+        # libiconv needs gperf (build)
         run: |
           pacman -Syu --needed --noconfirm \
             git unzip jre-openjdk \
             ghc cabal-install haskell-shake haskell-aeson-pretty \
             cmake extra-cmake-modules ninja \
-            boost \ # for libime
-            python \ # for opencc
-            gperf # for libiconv
+            boost \
+            python \
+            gperf
 
       - name: Fetch source code
         uses: actions/checkout@v6
