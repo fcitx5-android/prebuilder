@@ -24,12 +24,12 @@ jobs:
             git unzip jre-openjdk \
             ghc cabal-install haskell-shake haskell-aeson-pretty \
             cmake extra-cmake-modules ninja \
-            fmt boost \
-            python opencc \
-            gperf
+            boost \ # for libime
+            python \ # for opencc
+            gperf # for libiconv
 
       - name: Fetch source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # this only sync submodules specified in .gitmodules,
           # because we don't want recursive submodules in glog, librime, etc.
@@ -68,13 +68,14 @@ jobs:
 
       - name: Upload prebuilt to artifact
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           path: build/prebuilt.tar.zst
+          compression-level: 0
 
       - name: Fetch fcitx5-android/prebuilt
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: prebuilt
           repository: fcitx5-android/prebuilt

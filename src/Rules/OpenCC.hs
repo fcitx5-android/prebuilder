@@ -4,16 +4,43 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Rules.OpenCC (openccRule) where
+module Rules.OpenCC
+  ( hostOpenCCRule,
+    openccRule,
+  )
+where
 
 import Base
 import CMakeBuilder
+import System.IO.Unsafe (unsafePerformIO)
 
 data OpenCC = OpenCC
   deriving stock (Eq, Show, Typeable, Generic)
   deriving anyclass (Hashable, Binary, NFData)
 
 type instance RuleResult OpenCC = ()
+
+hostOpenCCRule :: Rules ()
+hostOpenCCRule = do
+  "opencc-dict" ~> do
+    need [ "host-marisa" ]
+    let openccSrc = unsafePerformIO $ canonicalizePath "OpenCC"
+    let buildDir = outputDir </> "opencc-build-host"
+    let hostPrefix = outputDir </> "host"
+    cmd_ Shell ("echo " <> openccSrc)
+    cmd_ (Cwd openccSrc) "git checkout ."
+    cmd_ (Cwd openccSrc) "git apply ../patches/opencc-host.patch"
+    cmd_
+      "cmake"
+      "-B" buildDir
+      "-G" "Ninja"
+      [ "-DCMAKE_INSTALL_PREFIX=" <> (outputDir </> "opencc"),
+        "-DCMAKE_FIND_ROOT_PATH=" <> hostPrefix,
+        "-DCMAKE_PREFIX_PATH=" <> hostPrefix
+      ]
+      openccSrc
+    cmd_ "cmake" "--build" buildDir "--target" [ "opencc_dict", "Dictionaries" ]
+    cmd_ "cmake" "--install" buildDir "--component" "data"
 
 openccRule :: Rules ()
 openccRule = do
@@ -44,28 +71,5 @@ openccRule = do
             ]
         }
   "opencc" ~> do
-    need ["marisa"]
-    env <- getAndroidEnv
-    -- since dictionary files are the same regardless of abi
-    -- we take a random one
-    let abiList = getABIList env
-        firstAbi = head abiList
-    -- delete old data and symlinks
-    liftIO $ do
-      removePathForcibly $ outputDir </> "opencc" </> "data"
-      forM_ abiList $ \a -> removePathForcibly $ outputDir </> "opencc" </> a </> "share" </> "opencc"
-    buildOpenCC $ WithAndroidEnv OpenCC env
-    liftIO $ do
-      getDirectoryFilesIO
-        (outputDir </> "opencc" </> firstAbi </> "share" </> "opencc")
-        ["//*"]
-        >>= mapM_
-          ( \x ->
-              copyFileAndCreateDir (outputDir </> "opencc" </> firstAbi </> "share" </> "opencc" </> x) $
-                outputDir </> "opencc" </> "data" </> x
-          )
-      forM_ abiList $ \a -> do
-        -- symlink dictionaries for each abi to reduce size
-        let dataPath = outputDir </> "opencc" </> a </> "share" </> "opencc"
-        whenM (doesPathExist dataPath) $ removePathForcibly dataPath
-        createDirectoryLink (".." </> ".." </> "data") dataPath
+    need [ "marisa", "opencc-dict" ]
+    buildWithAndroidEnv buildOpenCC OpenCC
