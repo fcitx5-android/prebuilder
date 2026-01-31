@@ -14,22 +14,28 @@ jobs:
       NDK_VERSION: "28.0.13004108"
       CMAKE_VERSION: "3.31.6"
       ANDROID_PLATFORM: "23"
+      RUST_VERSION: "1.92.0"
 
     steps:
       - name: Install build dependencies
         # android-actions/setup-android needs unzip
         # sdkmanager needs jre
+        # libime needs boost (build host tools)
+        # opencc needs python (scripts)
+        # libchewing needs rustup (build)
+        # libiconv needs gperf (build)
         run: |
           pacman -Syu --needed --noconfirm \
             git unzip jre-openjdk \
             ghc cabal-install haskell-shake haskell-aeson-pretty \
             cmake extra-cmake-modules ninja \
-            fmt boost \
-            python opencc \
+            boost \
+            python \
+            rustup \
             gperf
 
       - name: Fetch source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # this only sync submodules specified in .gitmodules,
           # because we don't want recursive submodules in glog, librime, etc.
@@ -41,6 +47,8 @@ jobs:
           git config --global --add safe.directory '*'
           # fetch libime submodule kenlm since it's not in .gitmodules
           git submodule update --init --recursive libime
+          # fetch libchewing-data submodule
+          git submodule update --init --recursive libchewing
 
       - name: Setup Android NDK
         uses: android-actions/setup-android@v3
@@ -50,6 +58,7 @@ jobs:
       - name: Build everything
         env:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+          RUST_VERSION: ${{ env.RUST_VERSION }}
         run: |
           # use archlinux's dynamic only ghc
           cabal configure --disable-library-vanilla --enable-shared --enable-executable-dynamic --ghc-options=-dynamic
@@ -68,13 +77,14 @@ jobs:
 
       - name: Upload prebuilt to artifact
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           path: build/prebuilt.tar.zst
+          compression-level: 0
 
       - name: Fetch fcitx5-android/prebuilt
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: prebuilt
           repository: fcitx5-android/prebuilt

@@ -1,14 +1,5 @@
-From 15a8b479e66ac597a0fca4bede8012f5bb9df151 Mon Sep 17 00:00:00 2001
-From: Rocka <i@rocka.me>
-Date: Tue, 12 Nov 2024 22:16:16 +0800
-Subject: [PATCH 1/2] set file-prefix-map to relative path
-
----
- src/CMakeLists.txt | 2 ++
- 1 file changed, 2 insertions(+)
-
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 16082869..c4a5b5ca 100644
+index 8faa61f8..671622ce 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
 @@ -166,6 +166,8 @@ if(BUILD_SHARED_LIBS)
@@ -20,24 +11,8 @@ index 16082869..c4a5b5ca 100644
    set_target_properties(rime-static PROPERTIES
      OUTPUT_NAME "rime" PREFIX "lib"
      ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
--- 
-2.47.0
-
-
-From 25608d1ea7a246b3ac4e7ccc02b1b6dfbb468869 Mon Sep 17 00:00:00 2001
-From: Rocka <i@rocka.me>
-Date: Tue, 12 Nov 2024 22:20:33 +0800
-Subject: [PATCH 2/2] Persist options to user.yaml in RimeSetOption
-
----
- src/rime/engine.cc  | 1 -
- src/rime/engine.h   | 2 ++
- src/rime/service.h  | 8 ++++----
- src/rime_api_impl.h | 9 +++++++++
- 4 files changed, 15 insertions(+), 5 deletions(-)
-
 diff --git a/src/rime/engine.cc b/src/rime/engine.cc
-index 07aa6b7d..7360e0b5 100644
+index 4a54f64c..2efe0c93 100644
 --- a/src/rime/engine.cc
 +++ b/src/rime/engine.cc
 @@ -52,7 +52,6 @@ class ConcreteEngine : public Engine {
@@ -49,7 +24,7 @@ index 07aa6b7d..7360e0b5 100644
  
  // implementations
 diff --git a/src/rime/engine.h b/src/rime/engine.h
-index 2e1c8b81..94a6b500 100644
+index 6b51a68e..c5b8f7e4 100644
 --- a/src/rime/engine.h
 +++ b/src/rime/engine.h
 @@ -16,6 +16,7 @@ namespace rime {
@@ -68,8 +43,30 @@ index 2e1c8b81..94a6b500 100644
  
   protected:
    Engine();
+diff --git a/src/rime/lever/deployment_tasks.cc b/src/rime/lever/deployment_tasks.cc
+index 6e6ff895..fe111d55 100644
+--- a/src/rime/lever/deployment_tasks.cc
++++ b/src/rime/lever/deployment_tasks.cc
+@@ -429,17 +429,6 @@ static bool ConfigNeedsUpdate(Config* config) {
+ }
+ 
+ bool ConfigFileUpdate::Run(Deployer* deployer) {
+-  const path shared_data_path(deployer->shared_data_dir);
+-  const path user_data_path(deployer->user_data_dir);
+-  // trash deprecated user copy created by an older version of Rime
+-  path source_config_path(shared_data_path / file_name_);
+-  path dest_config_path(user_data_path / file_name_);
+-  path trash = user_data_path / "trash";
+-  if (TrashDeprecatedUserCopy(source_config_path, dest_config_path,
+-                              version_key_, trash)) {
+-    LOG(WARNING) << "deprecated user copy of '" << file_name_
+-                 << "' is moved to " << trash;
+-  }
+   // build the config file if needs update
+   the<Config> config(Config::Require("config")->Create(file_name_));
+   if (ConfigNeedsUpdate(config.get())) {
 diff --git a/src/rime/service.h b/src/rime/service.h
-index 2b3111af..95ca87dc 100644
+index a69ae741..9b3d4b16 100644
 --- a/src/rime/service.h
 +++ b/src/rime/service.h
 @@ -44,11 +44,11 @@ class Session {
@@ -89,7 +86,7 @@ index 2b3111af..95ca87dc 100644
    string commit_text_;
  };
 diff --git a/src/rime_api_impl.h b/src/rime_api_impl.h
-index 7749ce98..b0200a67 100644
+index 30f4514f..c17d4794 100644
 --- a/src/rime_api_impl.h
 +++ b/src/rime_api_impl.h
 @@ -17,6 +17,8 @@
@@ -101,7 +98,7 @@ index 7749ce98..b0200a67 100644
  
  using namespace rime;
  
-@@ -426,6 +428,13 @@ RIME_DEPRECATED void RimeSetOption(RimeSessionId session_id,
+@@ -430,6 +432,13 @@ RIME_DEPRECATED void RimeSetOption(RimeSessionId session_id,
    if (!ctx)
      return;
    ctx->set_option(option, !!value);
@@ -115,6 +112,3 @@ index 7749ce98..b0200a67 100644
  }
  
  RIME_DEPRECATED Bool RimeGetOption(RimeSessionId session_id,
--- 
-2.47.0
-

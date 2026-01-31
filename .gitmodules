@@ -27,7 +27,7 @@
 	fetchRecurseSubmodules = false
 [submodule "marisa-trie"]
 	path = marisa-trie
-	url = https://github.com/rime/marisa-trie
+	url = https://github.com/s-yata/marisa-trie
 [submodule "librime"]
 	path = librime
 	url = https://github.com/rime/librime
