@@ -74,7 +74,10 @@ boostRule = do
               ],
           -- symlink headers for each abi to reduce size
           postBuildEachABI = BuildActionABI $ \_ env ->
-            liftIO $ createDirectoryLink (".." </> "include") (buildEnvOutPrefix env </> "include")
+            liftIO $ do
+              let includePath = buildEnvOutPrefix env </> "include"
+              whenM (doesPathExist includePath) $ removePathForcibly includePath
+              createDirectoryLink (".." </> "include") includePath
         }
   "boost" ~> do
     buildWithAndroidEnv buildBoost Boost
