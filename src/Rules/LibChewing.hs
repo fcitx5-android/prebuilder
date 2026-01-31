@@ -23,23 +23,34 @@ libchewingRule = do
     useCMake $
       (cmakeBuilder "libchewing")
         { preBuild = BuildAction $ \_ src -> do
-            -- CMakeLists is changed in last build
+            -- install rust toolchain
+            cmd_ Shell "rustup toolchain install $RUST_VERSION"
+            -- CMakeLists.txt changed in last build
             cmd_ (Cwd src) Shell "git checkout ."
-            -- skip data and shared lib
-            -- merge libuserphrase.a into libchewing.a
-            -- remove absolute path by CHEWING_DATADIR macro
-            -- remove absolute path by __FILE__ macro
+            -- disable data/doc, remove absolute path, optimize library size
             cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
-            cmakeFlags =
-              const 
-                [ "-DBUILD_SHARED_LIBS=OFF",
-                  "-DBUILD_TESTING=OFF",
-                  "-DWITH_SQLITE3=OFF",
-                  "-DWITH_RUST=OFF"
-                ]
+          preBuildEachABI = BuildActionABI $ \_ env -> do
+            -- install rust target for this abi
+            let targetName = case (buildEnvABI env) of
+                  "armeabi-v7a" -> "armv7-linux-androideabi"
+                  "arm64-v8a"   -> "aarch64-linux-android"
+                  "x86"         -> "i686-linux-android"
+                  "x86_64"      -> "x86_64-linux-android"
+                  _             -> fail "Unknown Android ABI"
+            cmd_ "rustup" "target" "add" targetName,
+          cmakeFlags =
+            const 
+              [ "-DBUILD_SHARED_LIBS=OFF",
+                "-DBUILD_TESTING=OFF",
+                "-DBUILD_DATA=OFF",
+                "-DBUILD_DOC=OFF",
+                "-DWITH_SQLITE3=OFF"
+              ]
         }
 
   "chewing-dict" ~> do
+    -- install rust
+    cmd_ Shell "rustup toolchain install $RUST_VERSION"
     let libchewingBuildHost = outputDir </> "libchewing-build-host"
         dictSrcDir = libchewingBuildHost </> "data"
     cmd_ (Cwd libchewingSrc) Shell "git checkout ."
@@ -49,10 +60,9 @@ libchewingRule = do
       libchewingBuildHost
       "-G"
       "Ninja"
-      [ "-DBUILD_SHARED_LIBS=OFF",
-        "-DBUILD_TESTING=OFF",
+      [ "-DBUILD_TESTING=OFF",
         "-DWITH_SQLITE3=OFF",
-        "-DWITH_RUST=OFF"
+        "-DBUILD_DOC=OFF"
       ]
       libchewingSrc
     cmd_
@@ -60,14 +70,13 @@ libchewingRule = do
       "--build"
       libchewingBuildHost
       "--target"
-      [ "data",
-        "all_static_data"
+      [ "dict_chewing",
+        "misc"
       ]
-    copyFile' (dictSrcDir </> "dictionary.dat") (dictOutputDir </> "dictionary.dat")
-    copyFile' (dictSrcDir </> "index_tree.dat") (dictOutputDir </> "index_tree.dat")
-    copyFile' (dictSrcDir </> "pinyin.tab") (dictOutputDir </> "pinyin.tab")
-    copyFile' (dictSrcDir </> "swkb.dat") (dictOutputDir </> "swkb.dat")
-    copyFile' (dictSrcDir </> "symbols.dat") (dictOutputDir </> "symbols.dat")
+    copyFile' (dictSrcDir </> "dict" </> "chewing" </> "tsi.dat") (dictOutputDir </> "tsi.dat")
+    copyFile' (dictSrcDir </> "dict" </> "chewing" </> "word.dat") (dictOutputDir </> "word.dat")
+    copyFile' (dictSrcDir </> "misc" </> "swkb.dat") (dictOutputDir </> "swkb.dat")
+    copyFile' (dictSrcDir </> "misc" </> "symbols.dat") (dictOutputDir </> "symbols.dat")
 
   "libchewing" ~> do
     need ["chewing-dict"]
