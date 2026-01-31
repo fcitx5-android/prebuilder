@@ -57,6 +57,7 @@ main = do
       libuvRule
       libintlLiteRule
       luaRule
+      hostOpenCCRule
       openccRule
       boostRule
       zstdRule
@@ -64,6 +65,7 @@ main = do
       glogRule
       yamlCppRule
       leveldbRule
+      hostMarisaRule
       marisaRule
       librimeRule
       libhangulRule
