@@ -1,14 +1,54 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1acb75a9..05198910 100644
+index c2e9dc70..fb9077d0 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -210,7 +210,8 @@ if(NOT USE_SYSTEM_MARISA)
+@@ -79,10 +79,6 @@ endif()
+ 
+ ######## Directory
+ 
+-set(LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "")
+-if(CMAKE_INSTALL_LIBDIR MATCHES "lib64$")
+-  set(LIB_SUFFIX 64)
+-endif()
+ 
+ set (DIR_PREFIX ${CMAKE_INSTALL_PREFIX})
+ set (DIR_INCLUDE ${DIR_PREFIX}/include)
+@@ -215,19 +211,13 @@ if(NOT USE_SYSTEM_MARISA)
    message(STATUS "Use bundled marisa library.")
    add_subdirectory(deps/marisa-0.2.6)
  else()
 -  find_library(LIBMARISA NAMES marisa)
-+  find_package(marisa)
-+  set(LIBMARISA marisa)
-   if (LIBMARISA)
-     message(STATUS "libmarisa found: ${LIBMARISA}")
-   else()
+-  if (LIBMARISA)
+-    message(STATUS "libmarisa found: ${LIBMARISA}")
+-  else()
+-    message(FATAL_ERROR "libmarisa not found.")
+-  endif()
++  find_package(Marisa REQUIRED)
+ endif()
+ 
+ ######## Subdirectories
+ 
+ add_subdirectory(src)
+ add_subdirectory(doc)
+-add_subdirectory(data)
+ add_subdirectory(test)
+ 
+ ######## Testing
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 227e6c65..9aed48d1 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -116,7 +116,7 @@ add_library(libopencc ${LIBOPENCC_SOURCES} ${LIBOPENCC_HEADERS})
+ add_library(OpenCC::OpenCC ALIAS libopencc)
+ set_target_properties(libopencc PROPERTIES POSITION_INDEPENDENT_CODE ON)
+ source_group(libopencc FILES ${LIBOPENCC_SOURCES} ${LIBOPENCC_HEADERS})
+-target_link_libraries(libopencc marisa)
++target_link_libraries(libopencc Marisa::marisa)
+ target_include_directories(libopencc PUBLIC
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+     $<INSTALL_INTERFACE:${DIR_INCLUDE}/opencc>
+@@ -206,4 +206,3 @@ endif()
+ 
+ # Subdir
+ 
+-add_subdirectory(tools)

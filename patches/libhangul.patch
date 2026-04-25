@@ -1,17 +1,17 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 8aafe38..edc76dd 100644
+index afac588..7d11d94 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -50,7 +50,6 @@ set(LIBHANGUL_LIBRARY_DIR "${CMAKE_INSTALL_LIBDIR}")
- add_subdirectory(hangul)
- add_subdirectory(data/hanja)
+@@ -52,7 +52,6 @@ add_subdirectory(data/hanja)
+ if(ENABLE_EXTERNAL_KEYBOARDS)
  add_subdirectory(data/keyboards)
+ endif()
 -add_subdirectory(tools)
  add_subdirectory(po)
  
  if(BUILD_TESTING)
 diff --git a/hangul/CMakeLists.txt b/hangul/CMakeLists.txt
-index 14fde95..399beb6 100644
+index cfda59b..d3a82b9 100644
 --- a/hangul/CMakeLists.txt
 +++ b/hangul/CMakeLists.txt
 @@ -45,9 +45,9 @@ add_library(hangul

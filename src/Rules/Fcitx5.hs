@@ -69,7 +69,7 @@ hostFcitx5Rule = do
     -- ignore install errors
     Exit _ <- cmd "cmake" "--install" buildDir
     -- install "comp-spell-dict" manually
-    copyFile' (buildDir </> "src" </> "modules" </> "spell" </> "comp-spell-dict") $ hostPrefix </> "bin" </> "comp-spell-dict"
+    copyFile' (buildDir </> "bin" </> "comp-spell-dict") $ hostPrefix </> "bin" </> "comp-spell-dict"
     pure ()
 
 --------------------------------------------------------------------------------

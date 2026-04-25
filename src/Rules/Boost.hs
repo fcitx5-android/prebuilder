@@ -32,6 +32,8 @@ boostRule = do
           cmakeFlags =
             const
               [ "-DCMAKE_INSTALL_MESSAGE=NEVER",
+                -- install boost headers to parent directory, symlink it afterwards
+                "-DCMAKE_INSTALL_INCLUDEDIR=" <> "../include",
                 "-DBOOST_EXCLUDE_LIBRARIES="
                   <> intercalate
                     ";"
@@ -69,26 +71,13 @@ boostRule = do
                 "-DBOOST_IOSTREAMS_ENABLE_LZMA=OFF",
                 "-DBOOST_IOSTREAMS_ENABLE_ZSTD=OFF",
                 "-DBOOST_INSTALL_LAYOUT=system"
-              ]
+              ],
+          -- symlink headers for each abi to reduce size
+          postBuildEachABI = BuildActionABI $ \_ env ->
+            liftIO $ do
+              let includePath = buildEnvOutPrefix env </> "include"
+              whenM (doesPathExist includePath) $ removePathForcibly includePath
+              createDirectoryLink (".." </> "include") includePath
         }
   "boost" ~> do
-    env <- getAndroidEnv
-    -- since header files are the same regardless of abi
-    -- we take a random one
-    let abiList = getABIList env
-        firstAbi = head abiList
-    _ <- buildBoost $ WithAndroidEnv Boost env
-    liftIO $ do
-      getDirectoryFilesIO
-        (outputDir </> "boost" </> firstAbi </> "include" </> "boost")
-        ["//*"]
-        >>= mapM_
-          ( \x ->
-              copyFileAndCreateDir (outputDir </> "boost" </> firstAbi </> "include" </> "boost" </> x) $
-                outputDir </> "boost" </> "include" </> "boost" </> x
-          )
-      forM_ abiList $ \a -> do
-        -- symlink headers for each abi to reduce size
-        let path = outputDir </> "boost" </> a </> "include"
-        whenM (doesPathExist path) $ removePathForcibly path
-        createDirectoryLink (".." </> "include") path
+    buildWithAndroidEnv buildBoost Boost
