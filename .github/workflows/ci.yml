@@ -24,7 +24,7 @@ jobs:
             git unzip jre-openjdk \
             ghc cabal-install haskell-shake haskell-aeson-pretty \
             cmake extra-cmake-modules ninja \
-            fmt boost \
+            fmt boost boost-libs \
             python opencc \
             gperf
 
