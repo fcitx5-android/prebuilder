@@ -1,37 +1,14 @@
 module Rules.Fcitx5
-  ( hostFmtRule,
-    hostFcitx5Rule,
+  ( hostFcitx5Rule,
     spellDictRule,
   )
 where
 
 import Base
 
-hostFmtRule :: Rules ()
-hostFmtRule = do
-  "host-fmt" ~> do
-    let fmtSrc = "fmt"
-    let buildDir = outputDir </> "fmt-build-host"
-    let hostPrefix = outputDir </> "host"
-    cmd_
-      "cmake"
-      "-B"
-      buildDir
-      "-G"
-      "Ninja"
-      [ "-DCMAKE_INSTALL_PREFIX=" <> hostPrefix,
-        "-DFMT_TEST=OFF" ,
-        "-DFMT_DOC=OFF"
-      ]
-      fmtSrc
-    cmd_ "cmake" "--build" buildDir
-    cmd_ "cmake" "--install" buildDir
-
-
 hostFcitx5Rule :: Rules ()
 hostFcitx5Rule = do
   "host-fcitx5" ~> do
-    need ["host-fmt"]
     let fcitx5Src = "fcitx5"
     let buildDir = outputDir </> "fcitx5-build-host"
     let hostPrefix = outputDir </> "host"
