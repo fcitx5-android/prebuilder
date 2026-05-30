@@ -83,7 +83,7 @@ jobs:
           archive: false
 
       - name: Fetch fcitx5-android/prebuilt
-        # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/checkout@v6
         with:
           path: prebuilt
@@ -91,7 +91,7 @@ jobs:
           token: ${{ secrets.PREBUILT_PUSH_TOKEN }}
 
       - name: Push to fcitx5-android/prebuilt
-        # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         working-directory: prebuilt
         run: |
           rm -r ./*
@@ -103,4 +103,4 @@ jobs:
           git config user.email "102923727+fcitx5-android-bot@users.noreply.github.com"
           git add .
           git diff-index --quiet HEAD || git commit -m "Auto update"
-          git push --set-upstream origin "HEAD:ci-test" --follow-tags --atomic
+          git push --set-upstream origin "HEAD:master" --follow-tags --atomic
