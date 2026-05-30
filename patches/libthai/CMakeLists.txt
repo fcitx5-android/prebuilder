@@ -5,6 +5,7 @@ set(LIBTHAI_HEADER
     "include/thai/thailib.h"
     "include/thai/thcell.h"
     "include/thai/thinp.h"
+    "include/thai/tis.h"
 )
 set(LIBTHAI_SOURCE
     src/thcell/thcell.c
