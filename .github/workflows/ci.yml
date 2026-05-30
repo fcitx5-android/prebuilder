@@ -83,7 +83,7 @@ jobs:
           archive: false
 
       - name: Fetch fcitx5-android/prebuilt
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/checkout@v6
         with:
           path: prebuilt
