@@ -88,7 +88,7 @@ jobs:
         with:
           path: prebuilt
           repository: fcitx5-android/prebuilt
-          token: ${{ secrets.BOT_TOKEN }}
+          token: ${{ secrets.PREBUILT_PUSH_TOKEN }}
 
       - name: Push to fcitx5-android/prebuilt
         # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
