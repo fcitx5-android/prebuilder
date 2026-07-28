@@ -6,6 +6,7 @@
 module Rules.Marisa
   ( marisaRule,
     hostMarisaRule,
+    marisaSourceRule,
   )
 where
 
@@ -18,13 +19,20 @@ data MarisaTrie = MarisaTrie
 
 type instance RuleResult MarisaTrie = ()
 
+marisaSourceRule :: Rules ()
+marisaSourceRule = do
+  "marisa-source" ~> do
+    src <- liftIO $ canonicalizePath "marisa-trie"
+    cmd_ (Cwd src) "git checkout ."
+    cmd_ (Cwd src) "git apply ../patches/marisa-tire.patch"
+
 hostMarisaRule :: Rules ()
 hostMarisaRule = do
   "host-marisa" ~> do
+    need ["marisa-source"]
     marisaSrc <- liftIO $ canonicalizePath "marisa-trie"
     let buildDir = outputDir </> "marisa-build-host"
     let hostPrefix = outputDir </> "host"
-    cmd_ (Cwd marisaSrc) "git checkout ."
     cmd_
       "cmake"
       "-B" buildDir
@@ -41,9 +49,8 @@ marisaRule = do
     useCMake $
       (cmakeBuilder "marisa")
         { source = const $ pure "marisa-trie",
-          preBuild = BuildAction $ \_ src -> do
-            cmd_ (Cwd src) "git checkout ."
-            cmd_ (Cwd src) "git apply ../patches/marisa-tire.patch",
           cmakeFlags = const ["-DBUILD_SHARED_LIBS=OFF"]
         }
-  "marisa" ~> buildWithAndroidEnv buildMarisa MarisaTrie
+  "marisa" ~> do
+    need ["marisa-source"]
+    buildWithAndroidEnv buildMarisa MarisaTrie
