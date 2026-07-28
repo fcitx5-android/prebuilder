@@ -64,6 +64,7 @@ main = do
       glogRule
       yamlCppRule
       leveldbRule
+      marisaSourceRule
       hostMarisaRule
       marisaRule
       librimeRule
