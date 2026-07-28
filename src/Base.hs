@@ -22,6 +22,7 @@ module Base
     getABIList,
     getCMakeToolchain,
     getNdkStrip,
+    getRustTargetTriples,
     withAndroidEnv,
     getAndroidEnv,
     WithAndroidEnv (..),
@@ -110,6 +111,7 @@ data AndroidEnv = AndroidEnv
     ndkRoot :: FilePath,
     sdkCMakeVersion :: String,
     platform :: Int,
+    rustVersion :: String,
     abi :: String
   }
   deriving stock (Eq, Show, Typeable, Generic)
@@ -130,6 +132,16 @@ getCMakeToolchain AndroidEnv {..} = ndkRoot </> "build" </> "cmake" </> "android
 getNdkStrip :: AndroidEnv -> FilePath
 getNdkStrip AndroidEnv {..} = ndkRoot </> "toolchains" </> "llvm" </> "prebuilt" </> "linux-x86_64" </> "bin" </> "llvm-strip"
 
+getRustTargetTriples :: AndroidEnv -> [String]
+getRustTargetTriples = map abiToRustTarget . getABIList
+  where
+    abiToRustTarget abi = case abi of
+      "armeabi-v7a" -> "armv7-linux-androideabi"
+      "arm64-v8a"   -> "aarch64-linux-android"
+      "x86"         -> "i686-linux-android"
+      "x86_64"      -> "x86_64-linux-android"
+      _             -> error $ "Unknown Android ABI: " <> abi
+
 withAndroidEnv :: AndroidEnv -> (FilePath -> FilePath -> FilePath -> FilePath -> [String] -> Action a) -> Action a
 withAndroidEnv env f = f (getSdkCMake env) (getCMakeToolchain env) (getSdkNinja env) (getNdkStrip env) (getABIList env)
 
@@ -141,6 +153,7 @@ getAndroidEnv = do
   ndkRoot <- env "ANDROID_NDK_ROOT"
   sdkCMakeVersion <- env "CMAKE_VERSION"
   platform <- read <$> env "ANDROID_PLATFORM"
+  rustVersion <- env "RUST_VERSION"
   abi <- env "ABI"
   pure AndroidEnv {..}
   where
