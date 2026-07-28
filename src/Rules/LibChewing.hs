@@ -67,5 +67,5 @@ libchewingRule = do
     copyFile' (dictSrcDir </> "misc" </> "symbols.dat") (dictOutputDir </> "symbols.dat")
 
   "libchewing" ~> do
-    need ["chewing-dict", "rust-android-targets"]
+    need ["chewing-dict", "android-rust-targets"]
     buildWithAndroidEnv buildLibchewing LibChewing

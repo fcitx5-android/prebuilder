@@ -14,7 +14,7 @@ hostRustToolchainRule = do
 
 androidRustTargetsRule :: Rules ()
 androidRustTargetsRule = do
-  "rust-android-targets" ~> do
+  "android-rust-targets" ~> do
     need ["host-rust-toolchain"]
     androidEnv <- getAndroidEnv
     forM_ (getRustTargetTriples androidEnv) $ \target ->

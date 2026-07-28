@@ -39,5 +39,6 @@ executable prebuilder
     Rules.Lua
     Rules.Marisa
     Rules.OpenCC
+    Rules.RustToolchain
     Rules.YAMLCpp
     Rules.ZSTD
