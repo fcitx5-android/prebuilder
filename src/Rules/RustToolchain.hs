@@ -18,7 +18,7 @@ androidRustTargetsRule = do
     need ["host-rust-toolchain"]
     androidEnv <- getAndroidEnv
     forM_ (getABIList androidEnv) $ \a -> do
-      let target = case a of 
+      let target = case a of
             "armeabi-v7a" -> "armv7-linux-androideabi"
             "arm64-v8a"   -> "aarch64-linux-android"
             "x86"         -> "i686-linux-android"
