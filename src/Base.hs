@@ -110,6 +110,7 @@ data AndroidEnv = AndroidEnv
     ndkRoot :: FilePath,
     sdkCMakeVersion :: String,
     platform :: Int,
+    rustVersion :: String,
     abi :: String
   }
   deriving stock (Eq, Show, Typeable, Generic)
@@ -141,6 +142,7 @@ getAndroidEnv = do
   ndkRoot <- env "ANDROID_NDK_ROOT"
   sdkCMakeVersion <- env "CMAKE_VERSION"
   platform <- read <$> env "ANDROID_PLATFORM"
+  rustVersion <- env "RUST_VERSION"
   abi <- env "ABI"
   pure AndroidEnv {..}
   where
@@ -174,7 +176,7 @@ execute tool =
   cmdArguments
     ( CmdArgument
         [ Right (outputDir </> "host" </> "bin" </> tool),
-          Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "host"  </> "lib"))
+          Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "host" </> "lib"))
         ]
     )
 

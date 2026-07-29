@@ -23,21 +23,10 @@ libchewingRule = do
     useCMake $
       (cmakeBuilder "libchewing")
         { preBuild = BuildAction $ \_ src -> do
-            -- install rust toolchain
-            cmd_ Shell "rustup toolchain install $RUST_VERSION"
             -- CMakeLists.txt changed in last build
             cmd_ (Cwd src) Shell "git checkout ."
             -- disable data/doc, remove absolute path, optimize library size
             cmd_ (Cwd src) "git apply ../patches/libchewing.patch",
-          preBuildEachABI = BuildActionABI $ \_ env -> do
-            -- install rust target for this abi
-            let targetName = case (buildEnvABI env) of
-                  "armeabi-v7a" -> "armv7-linux-androideabi"
-                  "arm64-v8a"   -> "aarch64-linux-android"
-                  "x86"         -> "i686-linux-android"
-                  "x86_64"      -> "x86_64-linux-android"
-                  _             -> fail "Unknown Android ABI"
-            cmd_ "rustup" "target" "add" targetName,
           cmakeFlags =
             const 
               [ "-DBUILD_SHARED_LIBS=OFF",
@@ -49,8 +38,7 @@ libchewingRule = do
         }
 
   "chewing-dict" ~> do
-    -- install rust
-    cmd_ Shell "rustup toolchain install $RUST_VERSION"
+    need ["host-rust-toolchain"]
     let libchewingBuildHost = outputDir </> "libchewing-build-host"
         dictSrcDir = libchewingBuildHost </> "data"
     cmd_ (Cwd libchewingSrc) Shell "git checkout ."
@@ -79,5 +67,5 @@ libchewingRule = do
     copyFile' (dictSrcDir </> "misc" </> "symbols.dat") (dictOutputDir </> "symbols.dat")
 
   "libchewing" ~> do
-    need ["chewing-dict"]
+    need ["chewing-dict", "android-rust-targets"]
     buildWithAndroidEnv buildLibchewing LibChewing
