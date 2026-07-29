@@ -19,14 +19,14 @@ import Rules.Fcitx5
 import Rules.GLog
 import Rules.LevelDB
 import Rules.LibChewing
-import Rules.LibUV
-import Rules.LibIconv
 import Rules.LibHangul
 import Rules.LibIME
 import Rules.LibIMEJyutping
+import Rules.LibIconv
 import Rules.LibIntlLite
 import Rules.LibRime
 import Rules.LibThai
+import Rules.LibUV
 import Rules.Lua
 import Rules.Marisa
 import Rules.OpenCC
@@ -197,7 +197,13 @@ instance A.ToJSON ToolchainVersions where
 getToolchainVersions :: Action ToolchainVersions
 getToolchainVersions = do
   StdoutTrim prebuilderRev <- cmd "git" "rev-parse" "HEAD"
-  AndroidEnv {sdkCMakeVersion = cmakeVersion, platform = platformVersion, rustVersion = rustVersion, ..} <- getAndroidEnv
+  AndroidEnv
+    { sdkCMakeVersion = cmakeVersion,
+      platform = platformVersion,
+      rustVersion = rustVersion,
+      ..
+    } <-
+    getAndroidEnv
   properties <- readFileLines $ ndkRoot </> "source.properties"
   ndkVersion <- case find ("Pkg.Revision" `isPrefixOf`) properties of
     Just line

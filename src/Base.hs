@@ -176,7 +176,7 @@ execute tool =
   cmdArguments
     ( CmdArgument
         [ Right (outputDir </> "host" </> "bin" </> tool),
-          Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "host"  </> "lib"))
+          Left (AddEnv "LD_LIBRARY_PATH" (outputDir </> "host" </> "lib"))
         ]
     )
 

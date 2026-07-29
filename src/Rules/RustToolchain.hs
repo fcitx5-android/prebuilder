@@ -20,8 +20,8 @@ androidRustTargetsRule = do
     forM_ (getABIList androidEnv) $ \a -> do
       let target = case a of
             "armeabi-v7a" -> "armv7-linux-androideabi"
-            "arm64-v8a"   -> "aarch64-linux-android"
-            "x86"         -> "i686-linux-android"
-            "x86_64"      -> "x86_64-linux-android"
-            _             -> error $ "Unknown Android ABI: " <> a
+            "arm64-v8a" -> "aarch64-linux-android"
+            "x86_64" -> "x86_64-linux-android"
+            "x86" -> "i686-linux-android"
+            _ -> error $ "Unknown Android ABI: " <> a
       cmd_ "rustup" "target" "add" target
