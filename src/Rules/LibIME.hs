@@ -83,7 +83,7 @@ lmRule = do
   outputDir </> "sc.lm" %> \out -> do
     let src = outputDir </> "lm_sc.arpa"
     need ["libime-tools", src]
-    execute "libime_slm_build_binary" "-s -a 22 -q 8 trie" src out
+    execute "libime_slm_build_binary" "-s -a 22 -q 4 trie" src out
   outputDir </> "sc.lm.predict" %> \out -> do
     let src1 = outputDir </> "sc.lm"
         src2 = outputDir </> "lm_sc.arpa"
