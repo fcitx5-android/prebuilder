@@ -29,6 +29,7 @@ import Rules.LibThai
 import Rules.LibUV
 import Rules.Lua
 import Rules.Marisa
+import Rules.NlohmannJSON
 import Rules.OpenCC
 import Rules.RustToolchain
 import Rules.YAMLCpp
@@ -68,6 +69,7 @@ main = do
       marisaSourceRule
       hostMarisaRule
       marisaRule
+      nlohmannJSONRule
       librimeRule
       libhangulRule
       libchewingRule
@@ -94,6 +96,7 @@ main = do
                 "yaml-cpp",
                 "leveldb",
                 "marisa",
+                "nlohmann_json",
                 "librime",
                 "libhangul",
                 "chewing-dict",

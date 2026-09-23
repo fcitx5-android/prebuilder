@@ -22,6 +22,7 @@ both can be installed with `sdkmanager` command line tool.
 * `python`: build dep of `opencc`
 * `opencc`: for `opencc_dict`
 * `gperf`: build dep of `libiconv`
+* `rustup`: build dep of `libchewing`
 
 ## Libraries
 
@@ -40,6 +41,7 @@ both can be installed with `sdkmanager` command line tool.
 * yaml-cpp: [jbeder/yaml-cpp](https://github.com/jbeder/yaml-cpp)
 * leveldb: [google/leveldb](https://github.com/google/leveldb)
 * marisa-trie: [s-yata/marisa-trie](https://github.com/s-yata/marisa-trie)
+* nlohmann_json: [nlohmann/json](https://github.com/nlohmann/json)
 * librime: [rime/librime](https://github.com/rime/librime)
 * librime-lua: [rime/librime-lua](https://github.com/hchunhui/librime-lua)
 * librime-octagram: [rime/librime-octagram](https://github.com/lotem/librime-octagram)
