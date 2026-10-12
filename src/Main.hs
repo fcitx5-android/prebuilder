@@ -8,7 +8,7 @@ module Main where
 import Base
 import Data.Aeson qualified as A
 import Data.Aeson.Encode.Pretty qualified as A
-import Data.List.Extra (dropWhileEnd, find, isPrefixOf, split)
+import Data.List.Extra (trim, find, isPrefixOf, split)
 import Data.String (fromString)
 import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Builder qualified as TLB
@@ -211,7 +211,7 @@ getToolchainVersions = do
   ndkVersion <- case find ("Pkg.Revision" `isPrefixOf`) properties of
     Just line
       | [_, ndkVersion] <- split (== '=') line ->
-          pure $ dropWhileEnd (== ' ') ndkVersion
+          pure $ trim ndkVersion
       | otherwise -> fail "Failed to parse Pkg.Revision"
     Nothing -> fail "Pkg.Revision not found in source.properties"
   pure ToolchainVersions {..}
