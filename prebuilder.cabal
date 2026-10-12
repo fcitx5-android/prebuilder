@@ -38,6 +38,7 @@ executable prebuilder
     Rules.LibThai
     Rules.Lua
     Rules.Marisa
+    Rules.NlohmannJSON
     Rules.OpenCC
     Rules.RustToolchain
     Rules.YAMLCpp
