@@ -118,6 +118,7 @@ main = do
           [ "fcitx5",
             "spell-dict",
             "libime",
+            "nlohmann_json",
             "chinese-addons-data",
             "lua",
             "opencc",
